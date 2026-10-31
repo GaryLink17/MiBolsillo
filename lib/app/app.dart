@@ -35,12 +35,12 @@ class MiBolsilloApp extends ConsumerWidget {
             (isLight ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light)
                 .copyWith(
                   statusBarColor: Colors.transparent,
-                  systemNavigationBarColor: Theme.of(context)
-                      .scaffoldBackgroundColor,
+                  systemNavigationBarColor: Colors.transparent,
                   systemNavigationBarIconBrightness: isLight
                       ? Brightness.dark
                       : Brightness.light,
                   systemNavigationBarDividerColor: Colors.transparent,
+                  systemNavigationBarContrastEnforced: false,
                 );
         return AnnotatedRegion<SystemUiOverlayStyle>(
           value: overlayStyle,

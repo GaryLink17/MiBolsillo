@@ -122,13 +122,6 @@ class AppBottomNav extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: scheme.primary,
                             shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: scheme.primary.withValues(alpha: 0.18),
-                                blurRadius: 14,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
                           ),
                           child: Icon(
                             Icons.add_rounded,
