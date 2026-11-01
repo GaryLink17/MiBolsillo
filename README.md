@@ -9,11 +9,14 @@ Hito **M0 + M1**: base del proyecto, sistema de diseño y navegación.
 
 - Tema claro/oscuro con los colores del diseño de referencia.
 - Tipografía Inter incluida en la app (sin descargas en tiempo de ejecución).
-- Tutorial guiado de 4 pasos la primera vez; se puede repetir desde Ajustes.
+- Entrada: bienvenida → tutorial de 4 pasos → acceso → inicio. El tutorial se
+  puede omitir y repetir desde Ajustes; quien ya tiene cuenta puede saltarlo.
+- Acceso con correo y contraseña mediante Supabase. Sin sesión no se llega a
+  ninguna pantalla interna.
 - Navegación con 5 accesos: Inicio, Movimientos, Cuentas, Categorías y el botón
   central de nuevo movimiento.
-- Inicio con datos de muestra para validar tarjetas, cuentas y movimientos.
-- Ajustes funcional para cambiar tema y repetir el tutorial.
+- Inicio arranca vacío (sin datos de prueba), con estados vacíos reales.
+- Ajustes funcional para cambiar tema, repetir el tutorial y cerrar sesión.
 
 No hay todavía base de datos, autenticación ni registro real de movimientos.
 

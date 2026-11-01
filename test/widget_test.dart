@@ -41,14 +41,60 @@ Future<Widget> _buildApp({
   );
 }
 
+Future<void> _tapVisible(WidgetTester tester, String label) async {
+  final finder = find.text(label);
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+  await tester.tap(finder);
+  await tester.pumpAndSettle();
+}
+
 void main() {
-  testWidgets('sin sesión la app abre el acceso', (tester) async {
+  testWidgets('sin sesión la app abre la bienvenida', (tester) async {
     await tester.pumpWidget(await _buildApp());
     await tester.pumpAndSettle();
 
+    expect(find.text('Mi Bolsillo'), findsOneWidget);
+    expect(find.text('Comenzar'), findsOneWidget);
+    expect(find.text('Ya tengo cuenta'), findsOneWidget);
+    expect(find.text('Balance total'), findsNothing);
+  });
+
+  testWidgets('"Ya tengo cuenta" lleva al acceso', (tester) async {
+    await tester.pumpWidget(await _buildApp());
+    await tester.pumpAndSettle();
+
+    await _tapVisible(tester, 'Ya tengo cuenta');
+
     expect(find.text('Bienvenido de nuevo'), findsOneWidget);
     expect(find.text('Entrar'), findsOneWidget);
-    expect(find.text('Balance total'), findsNothing);
+  });
+
+  testWidgets('"Comenzar" lleva al tutorial', (tester) async {
+    await tester.pumpWidget(await _buildApp());
+    await tester.pumpAndSettle();
+
+    await _tapVisible(tester, 'Comenzar');
+
+    expect(find.text('Todo tu dinero, en un solo lugar'), findsOneWidget);
+    expect(find.text('Paso 1 de 4'), findsOneWidget);
+  });
+
+  testWidgets('terminar el tutorial sin sesión lleva al acceso', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await _buildApp());
+    await tester.pumpAndSettle();
+
+    await _tapVisible(tester, 'Comenzar');
+    for (var step = 0; step < 3; step++) {
+      await _tapVisible(tester, 'Siguiente');
+    }
+
+    expect(find.text('Paso 4 de 4'), findsOneWidget);
+    await _tapVisible(tester, 'Empezar');
+
+    expect(find.text('Bienvenido de nuevo'), findsOneWidget);
   });
 
   testWidgets('con sesión y sin tutorial aparece el tutorial', (tester) async {
@@ -59,18 +105,16 @@ void main() {
     expect(find.text('Paso 1 de 4'), findsOneWidget);
   });
 
-  testWidgets('completar el tutorial lleva al inicio vacío', (tester) async {
+  testWidgets('completar el tutorial con sesión lleva al inicio vacío', (
+    tester,
+  ) async {
     await tester.pumpWidget(await _buildApp(signedIn: true));
     await tester.pumpAndSettle();
 
     for (var step = 0; step < 3; step++) {
-      await tester.tap(find.text('Siguiente'));
-      await tester.pumpAndSettle();
+      await _tapVisible(tester, 'Siguiente');
     }
-
-    expect(find.text('Paso 4 de 4'), findsOneWidget);
-    await tester.tap(find.text('Empezar'));
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, 'Empezar');
 
     expect(find.text('Balance total'), findsOneWidget);
     expect(find.text('Aún no tienes cuentas'), findsOneWidget);

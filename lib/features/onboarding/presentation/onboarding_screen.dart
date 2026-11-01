@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../core/preferences/app_preferences.dart';
+import '../../auth/application/auth_providers.dart';
 
 class _OnboardingPageData {
   const _OnboardingPageData({
@@ -69,9 +70,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     if (!mounted) return;
     if (widget.replay) {
       context.pop();
-    } else {
-      context.go('/inicio');
+      return;
     }
+    final loggedIn = ref.read(sessionProvider) != null;
+    context.go(loggedIn ? '/inicio' : '/entrar');
   }
 
   void _next() {

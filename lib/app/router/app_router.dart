@@ -12,6 +12,7 @@ import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/placeholder/presentation/placeholder_screens.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/shell/presentation/app_shell.dart';
+import '../../features/welcome/presentation/welcome_screen.dart';
 
 /// Avisa al router cuando la sesión cambia (entrar o salir) para que vuelva a
 /// evaluar las redirecciones sin recrear el `GoRouter`.
@@ -45,17 +46,28 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final location = state.matchedLocation;
       final isAuthRoute = location == '/entrar' || location == '/crear-cuenta';
+      final isOnboarding = location == '/onboarding';
+      final isWelcome = location == '/bienvenida';
 
       if (!loggedIn) {
-        return isAuthRoute ? null : '/entrar';
+        if (isAuthRoute) return null;
+        if (!onboardingDone) {
+          return (isWelcome || isOnboarding) ? null : '/bienvenida';
+        }
+        return '/entrar';
       }
+
       if (!onboardingDone) {
-        return location == '/onboarding' ? null : '/onboarding';
+        return isOnboarding ? null : '/onboarding';
       }
-      if (isAuthRoute) return '/inicio';
+      if (isAuthRoute || isWelcome) return '/inicio';
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/bienvenida',
+        builder: (context, state) => const WelcomeScreen(),
+      ),
       GoRoute(
         path: '/onboarding',
         builder: (context, state) =>
