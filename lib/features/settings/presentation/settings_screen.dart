@@ -8,6 +8,8 @@ import '../../../app/theme/app_spacing.dart';
 import '../../../core/preferences/app_preferences.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/common.dart';
+import '../../auth/application/auth_providers.dart';
+import '../../auth/data/auth_repository.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -17,6 +19,9 @@ class SettingsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final palette = context.palette;
     final themeMode = ref.watch(themeModeProvider);
+    final session = ref.watch(authStateProvider).value;
+    final fullName = session?.user.userMetadata?['full_name'] as String?;
+    final hasSession = session != null;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Ajustes')),
@@ -32,14 +37,13 @@ class SettingsScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
               children: [
                 AppCard(
-                  onTap: () => _snack(
-                    context,
-                    'La cuenta y la sincronización llegan con Supabase.',
-                  ),
+                  onTap: hasSession ? null : () => context.push('/entrar'),
                   child: Row(
                     children: [
                       CircleIcon(
-                        icon: Icons.person_outline_rounded,
+                        icon: hasSession
+                            ? Icons.verified_user_outlined
+                            : Icons.person_outline_rounded,
                         size: 56,
                         iconSize: 26,
                         background: theme.colorScheme.primaryContainer,
@@ -51,12 +55,22 @@ class SettingsScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Tu perfil',
+                              hasSession
+                                  ? (fullName?.isNotEmpty == true
+                                        ? fullName!
+                                        : 'Tu cuenta')
+                                  : 'Tu perfil',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.titleMedium,
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Inicia sesión para sincronizar',
+                              hasSession
+                                  ? session.user.email ?? 'Sesión activa'
+                                  : 'Inicia sesión para sincronizar',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: palette.muted,
                               ),
@@ -64,7 +78,14 @@ class SettingsScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      Icon(Icons.chevron_right_rounded, color: palette.muted),
+                      if (hasSession)
+                        Icon(
+                          Icons.cloud_done_outlined,
+                          size: 20,
+                          color: palette.income,
+                        )
+                      else
+                        Icon(Icons.chevron_right_rounded, color: palette.muted),
                     ],
                   ),
                 ),
@@ -191,17 +212,21 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                OutlinedButton.icon(
-                  onPressed: () => _snack(
-                    context,
-                    'Disponible cuando actives tu cuenta en la nube.',
+                if (hasSession)
+                  OutlinedButton.icon(
+                    onPressed: () => _signOut(context, ref),
+                    icon: const Icon(Icons.logout_rounded, size: 20),
+                    label: const Text('Cerrar sesión'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
+                    ),
+                  )
+                else
+                  FilledButton.icon(
+                    onPressed: () => context.push('/entrar'),
+                    icon: const Icon(Icons.login_rounded, size: 20),
+                    label: const Text('Iniciar sesión'),
                   ),
-                  icon: const Icon(Icons.logout_rounded, size: 20),
-                  label: const Text('Cerrar sesión'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.colorScheme.error,
-                  ),
-                ),
                 const SizedBox(height: AppSpacing.xl),
                 Text(
                   'Mi Bolsillo · versión 1.0.0',
@@ -228,6 +253,19 @@ class SettingsScreen extends ConsumerWidget {
             ?.copyWith(color: palette.muted, fontWeight: FontWeight.w500),
       ),
     );
+  }
+
+  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+    final repository = ref.read(authRepositoryProvider);
+    if (repository == null) return;
+    try {
+      await repository.signOut();
+      if (!context.mounted) return;
+      _snack(context, 'Sesión cerrada. Tus datos siguen en tu cuenta.');
+    } on AuthFailure catch (failure) {
+      if (!context.mounted) return;
+      _snack(context, failure.message);
+    }
   }
 
   void _snack(BuildContext context, String message) {
