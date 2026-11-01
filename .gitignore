@@ -49,3 +49,6 @@ app.*.map.json
 
 # Capturas locales de revisión
 /screenshots/
+
+# Credenciales locales (usa env.example.json como plantilla)
+/env.json

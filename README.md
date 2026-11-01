@@ -56,6 +56,19 @@ flutter test
 flutter run
 ```
 
+### Conexión con Supabase
+
+Las credenciales no viven en el repositorio. Copia `env.example.json` a
+`env.json`, coloca tu URL y la clave pública (`anon`/`publishable`), y ejecuta:
+
+```bash
+flutter run --dart-define-from-file=env.json
+flutter build apk --dart-define-from-file=env.json
+```
+
+Si `env.json` no existe o está incompleto, la app arranca en modo local sin
+fallar. Nunca se usa la `service_role` desde la app.
+
 ## Siguientes hitos
 
 1. **M2** Autenticación con Supabase y esquema inicial (perfiles, cuentas,
