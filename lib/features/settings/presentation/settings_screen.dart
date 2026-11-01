@@ -19,7 +19,7 @@ class SettingsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final palette = context.palette;
     final themeMode = ref.watch(themeModeProvider);
-    final session = ref.watch(authStateProvider).value;
+    final session = ref.watch(sessionProvider);
     final fullName = session?.user.userMetadata?['full_name'] as String?;
     final hasSession = session != null;
 

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/preferences/app_preferences.dart';
+import '../../features/auth/application/auth_providers.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
@@ -11,15 +13,48 @@ import '../../features/placeholder/presentation/placeholder_screens.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/shell/presentation/app_shell.dart';
 
-/// Rutas de la app. La decisión de mostrar el tutorial se toma una sola vez,
-/// al arrancar, leyendo las preferencias ya cargadas en `main()`.
+/// Avisa al router cuando la sesión cambia (entrar o salir) para que vuelva a
+/// evaluar las redirecciones sin recrear el `GoRouter`.
+class _SessionRefresh extends ChangeNotifier {
+  _SessionRefresh(Ref ref) {
+    ref.listen<Session?>(sessionProvider, (_, _) => notifyListeners());
+  }
+}
+
+final _sessionRefreshProvider = Provider<_SessionRefresh>((ref) {
+  final refresh = _SessionRefresh(ref);
+  ref.onDispose(refresh.dispose);
+  return refresh;
+});
+
+/// Rutas de la app.
+///
+/// Orden de entrada: acceso → tutorial (solo la primera vez) → inicio.
+/// Sin sesión no se puede llegar a ninguna pantalla interna.
 final routerProvider = Provider<GoRouter>((ref) {
-  final preferences = ref.watch(sharedPreferencesProvider);
-  final onboardingCompleted =
-      preferences.getBool(PreferenceKeys.onboardingCompleted) ?? false;
+  final refresh = ref.watch(_sessionRefreshProvider);
 
   return GoRouter(
-    initialLocation: onboardingCompleted ? '/inicio' : '/onboarding',
+    initialLocation: '/inicio',
+    refreshListenable: refresh,
+    redirect: (context, state) {
+      final loggedIn = ref.read(sessionProvider) != null;
+      final preferences = ref.read(sharedPreferencesProvider);
+      final onboardingDone =
+          preferences.getBool(PreferenceKeys.onboardingCompleted) ?? false;
+
+      final location = state.matchedLocation;
+      final isAuthRoute = location == '/entrar' || location == '/crear-cuenta';
+
+      if (!loggedIn) {
+        return isAuthRoute ? null : '/entrar';
+      }
+      if (!onboardingDone) {
+        return location == '/onboarding' ? null : '/onboarding';
+      }
+      if (isAuthRoute) return '/inicio';
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/onboarding',

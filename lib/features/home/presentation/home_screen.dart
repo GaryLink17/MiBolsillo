@@ -8,8 +8,21 @@ import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/app_page.dart';
 import '../../../shared/widgets/common.dart';
 import '../../../shared/widgets/money_text.dart';
-import '../../../shared/widgets/movement_tile.dart';
-import '../data/home_demo.dart';
+
+const _monthNames = [
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
+];
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -18,6 +31,8 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = context.palette;
+    final now = DateTime.now();
+    final monthLabel = '${_monthNames[now.month - 1]} ${now.year}';
 
     return AppPage(
       child: ListView(
@@ -26,7 +41,7 @@ class HomeScreen extends StatelessWidget {
           Row(
             children: [
               MonthSelector(
-                label: HomeDemo.monthLabel,
+                label: monthLabel,
                 onTap: () => _comingSoon(context, 'El selector de mes'),
               ),
               const Spacer(),
@@ -44,71 +59,53 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xxs),
           MoneyText(
-            HomeDemo.totalBalance,
+            0,
             style: theme.textTheme.displayLarge?.copyWith(fontSize: 44),
             showDecimals: true,
           ),
           const SizedBox(height: AppSpacing.lg),
-          Row(
+          const Row(
             children: [
               Expanded(
                 child: _SummaryCard(
                   label: 'Ingresos',
-                  amount: HomeDemo.monthlyIncome,
+                  amount: 0,
                   icon: Icons.arrow_downward_rounded,
                   highlighted: true,
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: _SummaryCard(
                   label: 'Gastos',
-                  amount: HomeDemo.monthlyExpenses,
+                  amount: 0,
                   icon: Icons.arrow_upward_rounded,
                 ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.xxl),
-          SectionHeader(
-            title: 'Mis cuentas',
-            actionLabel: 'Ver todas',
+          const SectionHeader(title: 'Mis cuentas'),
+          const SizedBox(height: AppSpacing.xs),
+          _EmptySection(
+            icon: Icons.account_balance_wallet_outlined,
+            title: 'Aún no tienes cuentas',
+            message:
+                'Agrega tu efectivo, tu cuenta de banco o tu tarjeta para '
+                'empezar a ver tus saldos.',
+            actionLabel: 'Agregar cuenta',
             onAction: () => context.go('/cuentas'),
           ),
-          const SizedBox(height: AppSpacing.xs),
-          SizedBox(
-            height: 140,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: HomeDemo.accounts.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                final account = HomeDemo.accounts[index];
-                return AccountCard(
-                  name: account.name,
-                  balance: account.balance,
-                  icon: account.icon,
-                  onTap: () => context.go('/cuentas'),
-                );
-              },
-            ),
-          ),
           const SizedBox(height: AppSpacing.xxl),
-          SectionHeader(
-            title: 'Movimientos recientes',
-            actionLabel: 'Ver todo',
-            onAction: () => context.go('/movimientos'),
+          const SectionHeader(title: 'Movimientos recientes'),
+          const SizedBox(height: AppSpacing.xs),
+          const _EmptySection(
+            icon: Icons.receipt_long_outlined,
+            title: 'Sin movimientos todavía',
+            message:
+                'Cuando registres un gasto, un ingreso o un ahorro, '
+                'aparecerá aquí.',
           ),
-          const SizedBox(height: AppSpacing.xxs),
-          for (final movement in HomeDemo.movements)
-            MovementTile(
-              title: movement.title,
-              category: movement.category,
-              account: movement.account,
-              amount: movement.amount,
-              icon: movement.icon,
-              tone: movement.tone,
-            ),
           const SizedBox(height: AppSpacing.xs),
         ],
       ),
@@ -121,6 +118,55 @@ class HomeScreen extends StatelessWidget {
       ..showSnackBar(
         SnackBar(content: Text('$feature llega en el próximo paso.')),
       );
+  }
+}
+
+class _EmptySection extends StatelessWidget {
+  const _EmptySection({
+    required this.icon,
+    required this.title,
+    required this.message,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+    return AppCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.lg,
+      ),
+      child: Column(
+        children: [
+          CircleIcon(icon: icon, size: 48, iconSize: 22),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: AppSpacing.xxs),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(color: palette.muted),
+          ),
+          if (actionLabel != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            TextButton(onPressed: onAction, child: Text(actionLabel!)),
+          ],
+        ],
+      ),
+    );
   }
 }
 
