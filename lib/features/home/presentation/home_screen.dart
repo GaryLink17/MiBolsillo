@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
@@ -8,6 +9,9 @@ import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/app_page.dart';
 import '../../../shared/widgets/common.dart';
 import '../../../shared/widgets/money_text.dart';
+import '../../accounts/application/accounts_providers.dart';
+import '../../accounts/data/account.dart';
+import '../../accounts/data/accounts_repository.dart';
 
 const _monthNames = [
   'Enero',
@@ -24,90 +28,115 @@ const _monthNames = [
   'Diciembre',
 ];
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final palette = context.palette;
     final now = DateTime.now();
     final monthLabel = '${_monthNames[now.month - 1]} ${now.year}';
 
+    final accountsAsync = ref.watch(accountsProvider);
+    final accounts = accountsAsync.value ?? const <AccountSummary>[];
+    final total = accounts.fold<double>(
+      0,
+      (sum, account) => sum + account.balance,
+    );
+
     return AppPage(
-      child: ListView(
-        padding: AppPageMetrics.pagePadding,
-        children: [
-          Row(
-            children: [
-              MonthSelector(
-                label: monthLabel,
-                onTap: () => _comingSoon(context, 'El selector de mes'),
-              ),
-              const Spacer(),
-              CircleIconButton(
-                icon: Icons.person_outline_rounded,
-                tooltip: 'Ajustes',
-                onTap: () => context.push('/ajustes'),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          Text(
-            'Balance total',
-            style: theme.textTheme.bodyLarge?.copyWith(color: palette.muted),
-          ),
-          const SizedBox(height: AppSpacing.xxs),
-          MoneyText(
-            0,
-            style: theme.textTheme.displayLarge?.copyWith(fontSize: 44),
-            showDecimals: true,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          const Row(
-            children: [
-              Expanded(
-                child: _SummaryCard(
-                  label: 'Ingresos',
-                  amount: 0,
-                  icon: Icons.arrow_downward_rounded,
-                  highlighted: true,
+      child: RefreshIndicator(
+        onRefresh: () => ref.refresh(accountsProvider.future),
+        child: ListView(
+          padding: AppPageMetrics.pagePadding,
+          children: [
+            Row(
+              children: [
+                MonthSelector(
+                  label: monthLabel,
+                  onTap: () => _comingSoon(context, 'El selector de mes'),
                 ),
-              ),
-              SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: _SummaryCard(
-                  label: 'Gastos',
-                  amount: 0,
-                  icon: Icons.arrow_upward_rounded,
+                const Spacer(),
+                CircleIconButton(
+                  icon: Icons.person_outline_rounded,
+                  tooltip: 'Ajustes',
+                  onTap: () => context.push('/ajustes'),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xxl),
-          const SectionHeader(title: 'Mis cuentas'),
-          const SizedBox(height: AppSpacing.xs),
-          _EmptySection(
-            icon: Icons.account_balance_wallet_outlined,
-            title: 'Aún no tienes cuentas',
-            message:
-                'Agrega tu efectivo, tu cuenta de banco o tu tarjeta para '
-                'empezar a ver tus saldos.',
-            actionLabel: 'Agregar cuenta',
-            onAction: () => context.go('/cuentas'),
-          ),
-          const SizedBox(height: AppSpacing.xxl),
-          const SectionHeader(title: 'Movimientos recientes'),
-          const SizedBox(height: AppSpacing.xs),
-          const _EmptySection(
-            icon: Icons.receipt_long_outlined,
-            title: 'Sin movimientos todavía',
-            message:
-                'Cuando registres un gasto, un ingreso o un ahorro, '
-                'aparecerá aquí.',
-          ),
-          const SizedBox(height: AppSpacing.xs),
-        ],
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Text(
+              'Balance total',
+              style: theme.textTheme.bodyLarge?.copyWith(color: palette.muted),
+            ),
+            const SizedBox(height: AppSpacing.xxs),
+            MoneyText(
+              total,
+              style: theme.textTheme.displayLarge?.copyWith(fontSize: 44),
+              showDecimals: true,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            const Row(
+              children: [
+                Expanded(
+                  child: _SummaryCard(
+                    label: 'Ingresos',
+                    amount: 0,
+                    icon: Icons.arrow_downward_rounded,
+                    highlighted: true,
+                  ),
+                ),
+                SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: _SummaryCard(
+                    label: 'Gastos',
+                    amount: 0,
+                    icon: Icons.arrow_upward_rounded,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+            const SectionHeader(title: 'Mis cuentas'),
+            const SizedBox(height: AppSpacing.xs),
+            if (accountsAsync.isLoading && accounts.isEmpty)
+              const _LoadingSection()
+            else if (accountsAsync.hasError && accounts.isEmpty)
+              _ErrorSection(
+                message: accountsAsync.error is AccountsFailure
+                    ? (accountsAsync.error as AccountsFailure).message
+                    : 'No pudimos cargar tus cuentas. Revisa tu conexión.',
+                onRetry: () => ref.invalidate(accountsProvider),
+              )
+            else if (accounts.isEmpty)
+              _EmptySection(
+                icon: Icons.account_balance_wallet_outlined,
+                title: 'Aún no tienes cuentas',
+                message:
+                    'Configura tu saldo inicial para ver cuánto dinero '
+                    'tienes hoy en cada cuenta.',
+                actionLabel: 'Configurar saldo inicial',
+                onAction: () => context.push('/saldo-inicial'),
+              )
+            else
+              for (var i = 0; i < accounts.length; i++) ...[
+                if (i > 0) const SizedBox(height: AppSpacing.xs),
+                _AccountRow(account: accounts[i]),
+              ],
+            const SizedBox(height: AppSpacing.xxl),
+            const SectionHeader(title: 'Movimientos recientes'),
+            const SizedBox(height: AppSpacing.xs),
+            const _EmptySection(
+              icon: Icons.receipt_long_outlined,
+              title: 'Sin movimientos todavía',
+              message:
+                  'Cuando registres un gasto, un ingreso o un ahorro, '
+                  'aparecerá aquí.',
+            ),
+            const SizedBox(height: AppSpacing.xs),
+          ],
+        ),
       ),
     );
   }
@@ -118,6 +147,99 @@ class HomeScreen extends StatelessWidget {
       ..showSnackBar(
         SnackBar(content: Text('$feature llega en el próximo paso.')),
       );
+  }
+}
+
+class _AccountRow extends StatelessWidget {
+  const _AccountRow({required this.account});
+
+  final AccountSummary account;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AppCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          CircleIcon(
+            icon: account.kind.icon,
+            size: 42,
+            iconSize: 20,
+            background: theme.colorScheme.primaryContainer,
+            foreground: theme.colorScheme.onPrimaryContainer,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              account.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleMedium,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          MoneyText(
+            account.balance,
+            style: theme.textTheme.titleMedium?.copyWith(fontSize: 17),
+            showDecimals: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LoadingSection extends StatelessWidget {
+  const _LoadingSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return const AppCard(
+      padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
+      child: Center(
+        child: SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorSection extends StatelessWidget {
+  const _ErrorSection({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+    return AppCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.lg,
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.cloud_off_rounded, size: 26, color: palette.muted),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(color: palette.muted),
+          ),
+          const SizedBox(height: AppSpacing.xxs),
+          TextButton(onPressed: onRetry, child: const Text('Reintentar')),
+        ],
+      ),
+    );
   }
 }
 

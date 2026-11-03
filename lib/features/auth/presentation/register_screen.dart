@@ -83,7 +83,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ..showSnackBar(
           const SnackBar(content: Text('Tu cuenta está lista. ¡Bienvenido!')),
         );
-      context.go('/inicio');
+      context.go('/saldo-inicial');
     } on AuthFailure catch (failure) {
       if (!mounted) return;
       setState(() => _error = failure.message);

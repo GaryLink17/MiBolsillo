@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../core/preferences/app_preferences.dart';
+import '../../accounts/application/accounts_providers.dart';
 import '../../auth/application/auth_providers.dart';
 
 class _OnboardingPageData {
@@ -73,7 +74,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       return;
     }
     final loggedIn = ref.read(sessionProvider) != null;
-    context.go(loggedIn ? '/inicio' : '/entrar');
+    if (!loggedIn) {
+      context.go('/entrar');
+      return;
+    }
+
+    // Un usuario nuevo termina el tutorial con las cuentas vacías: le pedimos
+    // el saldo inicial antes de entrar. Si ya tiene cuentas, va directo.
+    var hasAccounts = true;
+    try {
+      hasAccounts = (await ref.read(accountsProvider.future)).isNotEmpty;
+    } catch (_) {
+      hasAccounts = true;
+    }
+    if (!mounted) return;
+    context.go(hasAccounts ? '/inicio' : '/saldo-inicial');
   }
 
   void _next() {

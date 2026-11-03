@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/preferences/app_preferences.dart';
+import '../../features/accounts/presentation/initial_balance_screen.dart';
 import '../../features/auth/application/auth_providers.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
@@ -84,6 +85,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/crear-cuenta',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/saldo-inicial',
+        builder: (context, state) => const InitialBalanceScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

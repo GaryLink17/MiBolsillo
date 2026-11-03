@@ -5,7 +5,7 @@ la nube (Supabase) a partir del siguiente hito.
 
 ## Estado actual
 
-Hito **M0 + M1**: base del proyecto, sistema de diseño y navegación.
+Hito **M2**: conexión con Supabase, acceso real y saldo inicial.
 
 - Tema claro/oscuro con los colores del diseño de referencia.
 - Tipografía Inter incluida en la app (sin descargas en tiempo de ejecución).
@@ -13,12 +13,15 @@ Hito **M0 + M1**: base del proyecto, sistema de diseño y navegación.
   puede omitir y repetir desde Ajustes; quien ya tiene cuenta puede saltarlo.
 - Acceso con correo y contraseña mediante Supabase. Sin sesión no se llega a
   ninguna pantalla interna.
+- Saldo inicial por cuenta (Efectivo, Banco, Ahorros y Tarjeta) al terminar el
+  registro; se puede omitir y configurar después desde Inicio.
+- Inicio muestra el balance total y las cuentas reales del usuario.
 - Navegación con 5 accesos: Inicio, Movimientos, Cuentas, Categorías y el botón
   central de nuevo movimiento.
-- Inicio arranca vacío (sin datos de prueba), con estados vacíos reales.
 - Ajustes funcional para cambiar tema, repetir el tutorial y cerrar sesión.
 
-No hay todavía base de datos, autenticación ni registro real de movimientos.
+Los movimientos, las metas de ahorro y la sincronización offline llegan en los
+siguientes hitos.
 
 ## Decisiones cerradas
 

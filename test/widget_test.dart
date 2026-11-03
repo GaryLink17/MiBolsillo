@@ -43,6 +43,13 @@ Future<Widget> _buildApp({
 
 Future<void> _tapVisible(WidgetTester tester, String label) async {
   final finder = find.text(label);
+  if (finder.evaluate().isEmpty) {
+    await tester.scrollUntilVisible(
+      finder,
+      220,
+      scrollable: find.byType(Scrollable).first,
+    );
+  }
   await tester.ensureVisible(finder);
   await tester.pumpAndSettle();
   await tester.tap(finder);
@@ -105,7 +112,7 @@ void main() {
     expect(find.text('Paso 1 de 4'), findsOneWidget);
   });
 
-  testWidgets('completar el tutorial con sesión lleva al inicio vacío', (
+  testWidgets('completar el tutorial con sesión lleva al saldo inicial', (
     tester,
   ) async {
     await tester.pumpWidget(await _buildApp(signedIn: true));
@@ -116,8 +123,55 @@ void main() {
     }
     await _tapVisible(tester, 'Empezar');
 
+    expect(find.text('¿Con cuánto empiezas?'), findsOneWidget);
+    expect(find.text('Efectivo'), findsOneWidget);
+    expect(find.text('Banco'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Tarjeta'),
+      220,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Ahorros'), findsOneWidget);
+    expect(find.text('Tarjeta'), findsOneWidget);
+  });
+
+  testWidgets('desde el saldo inicial se puede omitir e ir al inicio', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await _buildApp(signedIn: true));
+    await tester.pumpAndSettle();
+
+    for (var step = 0; step < 3; step++) {
+      await _tapVisible(tester, 'Siguiente');
+    }
+    await _tapVisible(tester, 'Empezar');
+    await _tapVisible(tester, 'Lo hago después');
+
     expect(find.text('Balance total'), findsOneWidget);
     expect(find.text('Aún no tienes cuentas'), findsOneWidget);
+  });
+
+  testWidgets('el saldo inicial exige al menos una cuenta activa', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      await _buildApp(values: {'onboarding_completed': true}, signedIn: true),
+    );
+    await tester.pumpAndSettle();
+
+    await _tapVisible(tester, 'Configurar saldo inicial');
+
+    expect(find.text('¿Con cuánto empiezas?'), findsOneWidget);
+
+    for (var i = 0; i < 2; i++) {
+      await tester.tap(find.byType(Switch).at(i));
+      await tester.pumpAndSettle();
+    }
+
+    await _tapVisible(tester, 'Empezar');
+    expect(find.text('Activa al menos una cuenta.'), findsOneWidget);
   });
 
   testWidgets('el inicio no muestra datos de prueba', (tester) async {
