@@ -9,6 +9,7 @@ import '../../features/auth/application/auth_providers.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/movements/presentation/movements_screen.dart';
 import '../../features/movements/presentation/new_movement_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/placeholder/presentation/placeholder_screens.dart';

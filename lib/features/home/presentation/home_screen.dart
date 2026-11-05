@@ -12,6 +12,10 @@ import '../../../shared/widgets/money_text.dart';
 import '../../accounts/application/accounts_providers.dart';
 import '../../accounts/data/account.dart';
 import '../../accounts/data/accounts_repository.dart';
+import '../../movements/application/movements_providers.dart';
+import '../../movements/data/movement.dart';
+import '../../movements/data/movements_repository.dart';
+import '../../movements/presentation/movement_row.dart';
 
 const _monthNames = [
   'Enero',
@@ -45,10 +49,18 @@ class HomeScreen extends ConsumerWidget {
       (sum, account) => sum + account.balance,
     );
 
+    final movementsAsync = ref.watch(movementsProvider);
+    final recentMovements = (movementsAsync.value ?? const <MovementEntry>[])
+        .take(5)
+        .toList(growable: false);
+    final totalsAsync = ref.watch(monthlyTotalsProvider);
+    final totals = totalsAsync.value ?? MovementTotals.zero;
+
     return AppPage(
       child: RefreshIndicator(
-        onRefresh: () => ref.refresh(accountsProvider.future),
+        onRefresh: () => _refresh(ref),
         child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: AppPageMetrics.pagePadding,
           children: [
             Row(
@@ -77,26 +89,33 @@ class HomeScreen extends ConsumerWidget {
               showDecimals: true,
             ),
             const SizedBox(height: AppSpacing.lg),
-            const Row(
+            Row(
               children: [
                 Expanded(
                   child: _SummaryCard(
                     label: 'Ingresos',
-                    amount: 0,
+                    amount: totals.income,
                     icon: Icons.arrow_downward_rounded,
                     highlighted: true,
                   ),
                 ),
-                SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: _SummaryCard(
                     label: 'Gastos',
-                    amount: 0,
+                    amount: totals.expenses,
                     icon: Icons.arrow_upward_rounded,
                   ),
                 ),
               ],
             ),
+            if (totalsAsync.hasError) ...[
+              const SizedBox(height: AppSpacing.xs),
+              _InlineRetry(
+                message: 'No pudimos cargar los totales del mes.',
+                onRetry: () => ref.invalidate(monthlyTotalsProvider),
+              ),
+            ],
             const SizedBox(height: AppSpacing.xxl),
             const SectionHeader(title: 'Mis cuentas'),
             const SizedBox(height: AppSpacing.xs),
@@ -125,20 +144,66 @@ class HomeScreen extends ConsumerWidget {
                 _AccountRow(account: accounts[i]),
               ],
             const SizedBox(height: AppSpacing.xxl),
-            const SectionHeader(title: 'Movimientos recientes'),
-            const SizedBox(height: AppSpacing.xs),
-            const _EmptySection(
-              icon: Icons.receipt_long_outlined,
-              title: 'Sin movimientos todavía',
-              message:
-                  'Cuando registres un gasto, un ingreso o un ahorro, '
-                  'aparecerá aquí.',
+            SectionHeader(
+              title: 'Movimientos recientes',
+              actionLabel: recentMovements.isEmpty ? null : 'Ver todos',
+              onAction: recentMovements.isEmpty
+                  ? null
+                  : () => context.go('/movimientos'),
             ),
+            const SizedBox(height: AppSpacing.xs),
+            if (movementsAsync.isLoading && recentMovements.isEmpty)
+              const _LoadingSection()
+            else if (movementsAsync.hasError && recentMovements.isEmpty)
+              _ErrorSection(
+                message: movementsAsync.error is MovementsFailure
+                    ? (movementsAsync.error as MovementsFailure).message
+                    : 'No pudimos cargar tus movimientos. Revisa tu conexión.',
+                onRetry: () {
+                  ref.invalidate(movementsProvider);
+                  ref.invalidate(monthlyTotalsProvider);
+                },
+              )
+            else if (recentMovements.isEmpty)
+              const _EmptySection(
+                icon: Icons.receipt_long_outlined,
+                title: 'Sin movimientos todavía',
+                message:
+                    'Cuando registres un gasto o un ingreso, '
+                    'aparecerá aquí.',
+              )
+            else
+              AppCard(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 4,
+                ),
+                child: Column(
+                  children: [
+                    for (
+                      var index = 0;
+                      index < recentMovements.length;
+                      index++
+                    ) ...[
+                      if (index > 0) Divider(height: 1, color: palette.border),
+                      MovementRow(movement: recentMovements[index]),
+                    ],
+                  ],
+                ),
+              ),
             const SizedBox(height: AppSpacing.xs),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _refresh(WidgetRef ref) async {
+    await Future.wait([
+      ref.refresh(accountsProvider.future),
+      ref.refresh(movementsProvider.future),
+      ref.refresh(monthlyTotalsProvider.future),
+    ]);
   }
 
   void _comingSoon(BuildContext context, String feature) {
@@ -239,6 +304,32 @@ class _ErrorSection extends StatelessWidget {
           TextButton(onPressed: onRetry, child: const Text('Reintentar')),
         ],
       ),
+    );
+  }
+}
+
+class _InlineRetry extends StatelessWidget {
+  const _InlineRetry({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+    return Row(
+      children: [
+        Icon(Icons.cloud_off_rounded, size: 16, color: palette.muted),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          child: Text(
+            message,
+            style: theme.textTheme.bodySmall?.copyWith(color: palette.muted),
+          ),
+        ),
+        TextButton(onPressed: onRetry, child: const Text('Reintentar')),
+      ],
     );
   }
 }
@@ -348,6 +439,7 @@ class _SummaryCard extends StatelessWidget {
           MoneyText(
             amount,
             style: theme.textTheme.titleLarge?.copyWith(fontSize: 20),
+            showDecimals: true,
           ),
         ],
       ),

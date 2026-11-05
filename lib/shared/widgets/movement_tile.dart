@@ -70,8 +70,7 @@ class MovementTile extends StatelessWidget {
   const MovementTile({
     super.key,
     required this.title,
-    required this.category,
-    required this.account,
+    required this.subtitle,
     required this.amount,
     required this.icon,
     required this.tone,
@@ -79,8 +78,7 @@ class MovementTile extends StatelessWidget {
   });
 
   final String title;
-  final String category;
-  final String account;
+  final String subtitle;
   final double amount;
   final IconData icon;
   final CategoryTone tone;
@@ -90,53 +88,54 @@ class MovementTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = context.palette;
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          CategoryAvatar(icon: icon, tone: tone),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontSize: 13,
+                    color: palette.muted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          MoneyText(
+            amount,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: amount > 0 ? palette.income : theme.colorScheme.onSurface,
+            ),
+            showSign: true,
+          ),
+        ],
+      ),
+    );
+
+    if (onTap == null) return content;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppRadius.md),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          children: [
-            CategoryAvatar(icon: icon, tone: tone),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '$category · $account',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontSize: 13,
-                      color: palette.muted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            MoneyText(
-              amount,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: amount > 0
-                    ? palette.income
-                    : theme.colorScheme.onSurface,
-              ),
-              showSign: true,
-            ),
-          ],
-        ),
-      ),
+      child: content,
     );
   }
 }

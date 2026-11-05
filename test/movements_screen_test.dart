@@ -1,0 +1,191 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mibolsillo/app/theme/app_colors.dart';
+import 'package:mibolsillo/app/theme/app_theme.dart';
+import 'package:mibolsillo/features/accounts/application/accounts_providers.dart';
+import 'package:mibolsillo/features/accounts/data/account.dart';
+import 'package:mibolsillo/features/auth/application/auth_providers.dart';
+import 'package:mibolsillo/features/categories/data/category.dart';
+import 'package:mibolsillo/features/home/presentation/home_screen.dart';
+import 'package:mibolsillo/features/movements/application/movements_providers.dart';
+import 'package:mibolsillo/features/movements/data/movement.dart';
+import 'package:mibolsillo/features/movements/data/movements_repository.dart';
+import 'package:mibolsillo/features/movements/presentation/movement_row.dart';
+import 'package:mibolsillo/features/movements/presentation/movements_screen.dart';
+import 'package:mibolsillo/shared/widgets/money_text.dart';
+import 'package:mibolsillo/shared/widgets/movement_tile.dart';
+
+const _comida = Category(
+  id: 'categoria-comida',
+  name: 'Comida',
+  kind: CategoryKind.gasto,
+  tone: CategoryTone.food,
+  icon: Icons.restaurant_rounded,
+);
+
+const _salario = Category(
+  id: 'categoria-salario',
+  name: 'Salario',
+  kind: CategoryKind.ingreso,
+  tone: CategoryTone.income,
+  icon: Icons.payments_rounded,
+);
+
+const _account = AccountSummary(
+  id: 'cuenta-efectivo',
+  name: 'Efectivo',
+  kind: AccountKind.efectivo,
+  balance: 1500,
+);
+
+Widget _buildMovements({
+  List<MovementEntry> movements = const [],
+  bool fails = false,
+}) {
+  return ProviderScope(
+    overrides: [
+      supabaseClientProvider.overrideWithValue(null),
+      movementsProvider.overrideWith((ref) async {
+        if (fails) {
+          throw const MovementsFailure(
+            'No pudimos cargar tus movimientos. Revisa tu conexión.',
+          );
+        }
+        return movements;
+      }),
+    ],
+    child: MaterialApp(
+      theme: buildAppTheme(Brightness.light),
+      home: const MovementsScreen(),
+    ),
+  );
+}
+
+Widget _buildHome({
+  required List<MovementEntry> movements,
+  required MovementTotals totals,
+}) {
+  return ProviderScope(
+    overrides: [
+      supabaseClientProvider.overrideWithValue(null),
+      accountsProvider.overrideWith((ref) async => const [_account]),
+      movementsProvider.overrideWith((ref) async => movements),
+      monthlyTotalsProvider.overrideWith((ref) async => totals),
+    ],
+    child: MaterialApp(
+      theme: buildAppTheme(Brightness.light),
+      home: const HomeScreen(),
+    ),
+  );
+}
+
+void main() {
+  testWidgets('sin movimientos invita a registrar el primero', (tester) async {
+    await tester.pumpWidget(_buildMovements());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Movimientos'), findsOneWidget);
+    expect(find.text('Sin movimientos todavía'), findsOneWidget);
+    expect(find.text('Registrar el primero'), findsOneWidget);
+  });
+
+  testWidgets('agrupa por Hoy y Ayer y muestra los signos', (tester) async {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final yesterday = today.subtract(const Duration(days: 1));
+
+    await tester.pumpWidget(
+      _buildMovements(
+        movements: [
+          MovementEntry(
+            id: '1',
+            type: MovementType.ingreso,
+            amount: 12000,
+            occurredOn: today,
+            accountName: 'Banco',
+            category: _salario,
+          ),
+          MovementEntry(
+            id: '2',
+            type: MovementType.gasto,
+            amount: 450,
+            occurredOn: today,
+            accountName: 'Efectivo',
+            category: _comida,
+          ),
+          MovementEntry(
+            id: '3',
+            type: MovementType.gasto,
+            amount: 120,
+            occurredOn: yesterday,
+            accountName: 'Efectivo',
+            note: 'Taxi',
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hoy'), findsOneWidget);
+    expect(find.text('Ayer'), findsOneWidget);
+    expect(find.text('Salario'), findsOneWidget);
+    expect(find.text('Comida'), findsOneWidget);
+    expect(find.text('Taxi'), findsOneWidget);
+    expect(find.byType(MovementRow), findsNWidgets(3));
+
+    final amounts = tester
+        .widgetList<MovementTile>(find.byType(MovementTile))
+        .map((tile) => tile.amount);
+    expect(amounts, containsAll(<double>[-450, 12000, -120]));
+  });
+
+  testWidgets('muestra un error con opción de reintentar', (tester) async {
+    await tester.pumpWidget(_buildMovements(fails: true));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('No pudimos cargar tus movimientos. Revisa tu conexión.'),
+      findsOneWidget,
+    );
+    expect(find.text('Reintentar'), findsOneWidget);
+  });
+
+  testWidgets('Inicio muestra los totales reales y solo 5 recientes', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final today = DateUtils.dateOnly(DateTime.now());
+    final movements = [
+      for (var index = 0; index < 6; index++)
+        MovementEntry(
+          id: '$index',
+          type: MovementType.gasto,
+          amount: (10 + index).toDouble(),
+          occurredOn: today,
+          accountName: 'Efectivo',
+          category: _comida,
+        ),
+    ];
+
+    await tester.pumpWidget(
+      _buildHome(
+        movements: movements,
+        totals: const MovementTotals(income: 12000, expenses: 450),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Movimientos recientes'), findsOneWidget);
+    expect(find.text('Ver todos'), findsOneWidget);
+    expect(find.byType(MovementRow), findsNWidgets(5));
+
+    final amounts = tester
+        .widgetList<MoneyText>(find.byType(MoneyText))
+        .map((money) => money.amount);
+    expect(amounts, containsAll(<double>[12000, 450]));
+  });
+}

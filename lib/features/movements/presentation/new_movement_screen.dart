@@ -108,6 +108,8 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
         ),
       );
       ref.invalidate(accountsProvider);
+      ref.invalidate(movementsProvider);
+      ref.invalidate(monthlyTotalsProvider);
       if (!mounted) return;
       context.pop();
       messenger

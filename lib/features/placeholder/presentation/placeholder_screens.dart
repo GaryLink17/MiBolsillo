@@ -53,19 +53,6 @@ class FeaturePlaceholderScreen extends StatelessWidget {
   }
 }
 
-class MovementsScreen extends StatelessWidget {
-  const MovementsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const FeaturePlaceholderScreen(
-      title: 'Movimientos',
-      icon: Icons.receipt_long_outlined,
-      message: 'Aquí podrás registrar y filtrar tus gastos, ingresos y ahorros por fecha, cuenta y categoría.',
-    );
-  }
-}
-
 class AccountsScreen extends StatelessWidget {
   const AccountsScreen({super.key});
 
