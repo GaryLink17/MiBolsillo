@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../shared/widgets/app_bottom_nav.dart';
-import '../../movements/presentation/new_movement_sheet.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});
@@ -21,7 +20,7 @@ class AppShell extends StatelessWidget {
             initialLocation: index == navigationShell.currentIndex,
           );
         },
-        onAddPressed: () => showNewMovementSheet(context),
+        onAddPressed: () => context.push('/nuevo-movimiento'),
       ),
     );
   }
