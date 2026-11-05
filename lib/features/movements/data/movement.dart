@@ -1,8 +1,18 @@
+// Archivo: lib/features/movements/data/movement.dart
+//
+// Modelos de movimientos: tipos permitidos, datos para crear uno y datos ya
+// guardados listos para la lista. Los ahorros se incorporarán en la Parte 3.
+
 import 'package:flutter/foundation.dart' show immutable;
 
 import '../../categories/data/category.dart';
 
 /// Tipos que se pueden registrar en esta entrega. `ahorro` llega con las metas.
+///
+/// Cada tipo conoce:
+/// - `label`: texto singular para el usuario.
+/// - `saveLabel`: texto del botón de guardado.
+/// - `categoryKind`: qué categorías se ofrecen en el formulario.
 enum MovementType {
   gasto('Gasto', 'Guardar gasto', CategoryKind.gasto),
   ingreso('Ingreso', 'Guardar ingreso', CategoryKind.ingreso);
@@ -13,6 +23,7 @@ enum MovementType {
   final String saveLabel;
   final CategoryKind categoryKind;
 
+  /// Convierte el valor almacenado en la base a un [MovementType].
   static MovementType fromDb(String value) {
     return switch (value) {
       'gasto' => MovementType.gasto,
@@ -69,6 +80,11 @@ class MovementEntry {
   /// negativo.
   double get signedAmount => isIncome ? amount : -amount;
 
+  /// Construye un movimiento a partir de una fila de Supabase con las
+  /// relaciones `accounts(...)` y `categories(...)` ya incluidas.
+  ///
+  /// Las fechas se normalizan a medianoche (`_dateOnly`) para agrupar por día
+  /// sin que la hora afecte la comparación.
   factory MovementEntry.fromMap(Map<String, dynamic> map) {
     final note = (map['note'] as String?)?.trim();
     final category = map['categories'];
@@ -101,4 +117,5 @@ class MovementTotals {
   static const zero = MovementTotals(income: 0, expenses: 0);
 }
 
+/// Quita la hora de una fecha para comparar solo el día.
 DateTime _dateOnly(DateTime date) => DateTime(date.year, date.month, date.day);

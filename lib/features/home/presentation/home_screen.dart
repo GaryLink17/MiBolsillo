@@ -1,3 +1,14 @@
+// Archivo: lib/features/home/presentation/home_screen.dart
+//
+// Pantalla de Inicio. Resume la situación financiera del usuario:
+// - balance total (suma de los saldos de sus cuentas);
+// - ingresos y gastos del mes actual;
+// - lista de cuentas;
+// - últimos cinco movimientos con acceso a "Ver todos".
+//
+// Cada bloque tiene sus propios estados de carga, error y vacío para que un
+// fallo de una consulta no oculte el resto de la pantalla.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +28,7 @@ import '../../movements/data/movement.dart';
 import '../../movements/data/movements_repository.dart';
 import '../../movements/presentation/movement_row.dart';
 
+/// Nombres de los meses en español. Se usan en el selector de mes del inicio.
 const _monthNames = [
   'Enero',
   'Febrero',
@@ -42,6 +54,7 @@ class HomeScreen extends ConsumerWidget {
     final now = DateTime.now();
     final monthLabel = '${_monthNames[now.month - 1]} ${now.year}';
 
+    // Cuentas y balance total. Mientras carga se usa una lista vacía.
     final accountsAsync = ref.watch(accountsProvider);
     final accounts = accountsAsync.value ?? const <AccountSummary>[];
     final total = accounts.fold<double>(
@@ -49,10 +62,13 @@ class HomeScreen extends ConsumerWidget {
       (sum, account) => sum + account.balance,
     );
 
+    // Movimientos recientes: solo los primeros cinco.
     final movementsAsync = ref.watch(movementsProvider);
     final recentMovements = (movementsAsync.value ?? const <MovementEntry>[])
         .take(5)
         .toList(growable: false);
+
+    // Totales del mes actual, independientes de la lista.
     final totalsAsync = ref.watch(monthlyTotalsProvider);
     final totals = totalsAsync.value ?? MovementTotals.zero;
 
@@ -60,9 +76,11 @@ class HomeScreen extends ConsumerWidget {
       child: RefreshIndicator(
         onRefresh: () => _refresh(ref),
         child: ListView(
+          // Permite el gesto de recarga aunque no haya suficiente contenido.
           physics: const AlwaysScrollableScrollPhysics(),
           padding: AppPageMetrics.pagePadding,
           children: [
+            // Cabecera: mes y acceso a Ajustes.
             Row(
               children: [
                 MonthSelector(
@@ -78,6 +96,8 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.xl),
+
+            // Balance total.
             Text(
               'Balance total',
               style: theme.textTheme.bodyLarge?.copyWith(color: palette.muted),
@@ -89,6 +109,8 @@ class HomeScreen extends ConsumerWidget {
               showDecimals: true,
             ),
             const SizedBox(height: AppSpacing.lg),
+
+            // Tarjetas de ingresos y gastos del mes.
             Row(
               children: [
                 Expanded(
@@ -109,6 +131,7 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            // Si los totales fallan, el resto de Inicio sigue visible.
             if (totalsAsync.hasError) ...[
               const SizedBox(height: AppSpacing.xs),
               _InlineRetry(
@@ -117,6 +140,8 @@ class HomeScreen extends ConsumerWidget {
               ),
             ],
             const SizedBox(height: AppSpacing.xxl),
+
+            // Sección de cuentas.
             const SectionHeader(title: 'Mis cuentas'),
             const SizedBox(height: AppSpacing.xs),
             if (accountsAsync.isLoading && accounts.isEmpty)
@@ -144,6 +169,8 @@ class HomeScreen extends ConsumerWidget {
                 _AccountRow(account: accounts[i]),
               ],
             const SizedBox(height: AppSpacing.xxl),
+
+            // Sección de movimientos recientes.
             SectionHeader(
               title: 'Movimientos recientes',
               actionLabel: recentMovements.isEmpty ? null : 'Ver todos',
@@ -198,6 +225,10 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
+  /// Recarga las tres consultas del inicio en paralelo.
+  ///
+  /// Se esperan todas para que el indicador de refresco desaparezca solo
+  /// cuando los datos estén listos.
   Future<void> _refresh(WidgetRef ref) async {
     await Future.wait([
       ref.refresh(accountsProvider.future),
@@ -206,6 +237,7 @@ class HomeScreen extends ConsumerWidget {
     ]);
   }
 
+  /// Aviso temporal para funciones que todavía no existen (selector de mes).
   void _comingSoon(BuildContext context, String feature) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -215,6 +247,7 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
+/// Fila de una cuenta: icono, nombre y saldo.
 class _AccountRow extends StatelessWidget {
   const _AccountRow({required this.account});
 
@@ -258,6 +291,7 @@ class _AccountRow extends StatelessWidget {
   }
 }
 
+/// Indicador de carga compacto para una sección.
 class _LoadingSection extends StatelessWidget {
   const _LoadingSection();
 
@@ -276,6 +310,7 @@ class _LoadingSection extends StatelessWidget {
   }
 }
 
+/// Error de una sección con botón para reintentar.
 class _ErrorSection extends StatelessWidget {
   const _ErrorSection({required this.message, required this.onRetry});
 
@@ -308,6 +343,7 @@ class _ErrorSection extends StatelessWidget {
   }
 }
 
+/// Aviso compacto para errores que no bloquean toda la pantalla.
 class _InlineRetry extends StatelessWidget {
   const _InlineRetry({required this.message, required this.onRetry});
 
@@ -334,6 +370,7 @@ class _InlineRetry extends StatelessWidget {
   }
 }
 
+/// Estado vacío de una sección, dentro de una tarjeta.
 class _EmptySection extends StatelessWidget {
   const _EmptySection({
     required this.icon,
@@ -383,6 +420,7 @@ class _EmptySection extends StatelessWidget {
   }
 }
 
+/// Tarjeta de resumen para ingresos o gastos.
 class _SummaryCard extends StatelessWidget {
   const _SummaryCard({
     required this.label,
@@ -400,6 +438,7 @@ class _SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = context.palette;
+    // Ingresos se resaltan en verde; gastos usan el color normal del texto.
     final foreground = highlighted
         ? palette.income
         : theme.colorScheme.onSurface;

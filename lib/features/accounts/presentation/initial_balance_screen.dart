@@ -1,3 +1,12 @@
+// Archivo: lib/features/accounts/presentation/initial_balance_screen.dart
+//
+// Primera configuración del dinero: el usuario indica cuánto tiene en cada tipo
+// de cuenta y decide cuáles quiere usar.
+//
+// Se muestra justo después de crear la cuenta. Antes de pintar el formulario
+// comprueba si ya hay cuentas (por ejemplo, si entró desde otro teléfono) para
+// no pedir el saldo dos veces.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,6 +36,10 @@ class InitialBalanceScreen extends ConsumerStatefulWidget {
       _InitialBalanceScreenState();
 }
 
+/// Estado editable de una fila de cuenta en el formulario.
+///
+/// Mantiene el interruptor, el monto escrito y el controlador del campo. Se
+/// crea una instancia por tipo de cuenta.
 class _AccountDraft {
   _AccountDraft({required this.kind, required this.enabled});
 
@@ -39,6 +52,9 @@ class _AccountDraft {
 
 class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
   final _formKey = GlobalKey<FormState>();
+
+  /// Efectivo y Banco vienen activos; Ahorros y Tarjeta, desactivados. Así el
+  /// formulario inicial es corto y el usuario solo enciende lo que usa.
   late final List<_AccountDraft> _drafts = [
     _AccountDraft(kind: AccountKind.efectivo, enabled: true),
     _AccountDraft(kind: AccountKind.banco, enabled: true),
@@ -52,6 +68,7 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
   @override
   void initState() {
     super.initState();
+    // Se consulta después del primer frame porque necesita el `ref` montado.
     WidgetsBinding.instance.addPostFrameCallback((_) => _skipIfConfigured());
   }
 
@@ -79,6 +96,8 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
     if (mounted) setState(() => _checking = false);
   }
 
+  /// Suma en vivo solo las cuentas activas. Se recalcula en cada cambio de
+  /// texto para mostrar el "saldo total" antes de guardar.
   double get _total {
     var total = 0.0;
     for (final draft in _drafts) {
@@ -88,6 +107,7 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
     return total;
   }
 
+  /// Guarda las cuentas activas en Supabase y navega al inicio.
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -117,6 +137,7 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
             amount: MoneyFormat.tryParse(draft.controller.text) ?? 0,
           ),
       ]);
+      // fuerza a Inicio a leer las cuentas recién creadas.
       ref.invalidate(accountsProvider);
       if (!mounted) return;
       ScaffoldMessenger.of(context)
@@ -133,6 +154,8 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
     }
   }
 
+  /// Sale del formulario sin guardar. Si se abrió desde otra pantalla vuelve a
+  /// ella; si no, va al inicio.
   void _skip() {
     if (_saving) return;
     if (context.canPop()) {
@@ -147,6 +170,8 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
     final theme = Theme.of(context);
     final palette = context.palette;
 
+    // Mientras se comprueba si ya hay cuentas se muestra un indicador para no
+    // enseñar el formulario por un instante y luego saltar.
     if (_checking) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -186,6 +211,7 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
+              // Una tarjeta por tipo de cuenta.
               for (var i = 0; i < _drafts.length; i++) ...[
                 if (i > 0) const SizedBox(height: AppSpacing.sm),
                 _AccountCard(
@@ -197,6 +223,7 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
                 ),
               ],
               const SizedBox(height: AppSpacing.lg),
+              // Resumen en vivo del saldo que se va a guardar.
               AppCard(
                 color: theme.colorScheme.primaryContainer.withValues(
                   alpha: 0.45,
@@ -247,6 +274,7 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
   }
 }
 
+/// Tarjeta de un tipo de cuenta con interruptor y campo de monto.
 class _AccountCard extends StatelessWidget {
   const _AccountCard({
     required this.draft,
@@ -270,6 +298,7 @@ class _AccountCard extends StatelessWidget {
         children: [
           Row(
             children: [
+              // El icono cambia de color según si la cuenta está activa.
               CircleIcon(
                 icon: draft.kind.icon,
                 size: 42,
@@ -298,6 +327,7 @@ class _AccountCard extends StatelessWidget {
               Switch(value: draft.enabled, onChanged: onEnabledChanged),
             ],
           ),
+          // El monto solo se pide cuando la cuenta está activa.
           if (draft.enabled) ...[
             const SizedBox(height: AppSpacing.xs),
             TextFormField(
@@ -317,6 +347,8 @@ class _AccountCard extends StatelessWidget {
                 isDense: true,
               ),
               validator: (value) {
+                // Vacío significa cero: es válido no tener dinero en una
+                // cuenta activa.
                 final text = value?.trim() ?? '';
                 if (text.isEmpty) return null;
                 final amount = MoneyFormat.tryParse(text);
@@ -335,6 +367,7 @@ class _AccountCard extends StatelessWidget {
   }
 }
 
+/// Caja de error con fondo rojo suave.
 class _ErrorBox extends StatelessWidget {
   const _ErrorBox(this.message);
 

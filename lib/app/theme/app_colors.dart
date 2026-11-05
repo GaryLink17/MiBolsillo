@@ -1,9 +1,19 @@
+// Archivo: lib/app/theme/app_colors.dart
+//
+// Paleta semántica de la app. Además del `ColorScheme` de Material, aquí viven
+// colores que Material no contempla: fondos de categorías, tono de ingreso,
+// bordes y textos atenuados.
+//
+// `AppPalette` es un `ThemeExtension`, por lo que se puede leer en cualquier
+// widget con `context.palette` y se interpola al cambiar de tema.
+
 import 'package:flutter/material.dart';
 
 /// Tono visual de una categoría. El color exacto depende del tema
 /// (claro/oscuro) y vive en [AppPalette].
 enum CategoryTone { food, transport, home, leisure, health, income, other }
 
+/// Par de colores (fondo y primer plano) para un tono de categoría.
 @immutable
 class ToneColors {
   const ToneColors({required this.background, required this.foreground});
@@ -40,8 +50,11 @@ class AppPalette extends ThemeExtension<AppPalette> {
   final Color dangerBackground;
   final Map<CategoryTone, ToneColors> tones;
 
+  /// Devuelve los colores del tono indicado. Todos los tonos están definidos
+  /// en [light] y [dark], por eso se puede usar `!`.
   ToneColors tone(CategoryTone tone) => tones[tone]!;
 
+  /// Paleta del tema claro.
   static const light = AppPalette(
     background: Color(0xFFF4F6F5),
     surface: Color(0xFFFFFFFF),
@@ -84,6 +97,8 @@ class AppPalette extends ThemeExtension<AppPalette> {
     },
   );
 
+  /// Paleta del tema oscuro. Mantiene los mismos nombres semánticos para que
+  /// las pantallas no tengan que preguntar por el tema.
   static const dark = AppPalette(
     background: Color(0xFF0B0E0D),
     surface: Color(0xFF171A19),
@@ -126,6 +141,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     },
   );
 
+  /// Crea una copia cambiando solo los colores indicados.
   @override
   AppPalette copyWith({
     Color? background,
@@ -153,6 +169,8 @@ class AppPalette extends ThemeExtension<AppPalette> {
     );
   }
 
+  /// Interpola entre la paleta actual y otra. Flutter lo usa durante la
+  /// transición entre tema claro y oscuro.
   @override
   AppPalette lerp(covariant ThemeExtension<AppPalette>? other, double t) {
     if (other is! AppPalette) return this;
@@ -193,6 +211,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
   }
 }
 
+/// Atajo para leer la paleta desde cualquier `BuildContext`.
 extension AppPaletteContext on BuildContext {
   AppPalette get palette => Theme.of(this).extension<AppPalette>()!;
 }

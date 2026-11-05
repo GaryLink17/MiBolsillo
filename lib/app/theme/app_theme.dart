@@ -1,3 +1,11 @@
+// Archivo: lib/app/theme/app_theme.dart
+//
+// Construye el `ThemeData` completo de la app para claro u oscuro.
+//
+// La idea es tener una sola función como fuente de verdad: colores, tipografía
+// y estilos de los controles (botones, campos, tarjetas, diálogos) se definen
+// aquí y las pantallas solo consumen el tema.
+
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
@@ -8,6 +16,8 @@ ThemeData buildAppTheme(Brightness brightness) {
   final isLight = brightness == Brightness.light;
   final palette = isLight ? AppPalette.light : AppPalette.dark;
 
+  // `ColorScheme` cubre los colores que Material usa internamente. Es distinto
+  // de `AppPalette`, que añade colores semánticos propios de la app.
   final scheme = isLight
       ? const ColorScheme(
           brightness: Brightness.light,
@@ -63,21 +73,27 @@ ThemeData buildAppTheme(Brightness brightness) {
     fontFamily: 'Inter',
   );
 
+  // La tipografía se genera una vez y hereda los colores de superficie.
   final textTheme = AppTypography.textTheme(muted: palette.muted)
       .apply(bodyColor: scheme.onSurface, displayColor: scheme.onSurface);
 
+  // Borde redondeado compartido por todos los estados de los campos de texto.
   final roundedField = OutlineInputBorder(
     borderRadius: BorderRadius.circular(18),
     borderSide: BorderSide(color: palette.border),
   );
 
   return base.copyWith(
+    // Fondos generales.
     scaffoldBackgroundColor: palette.background,
     canvasColor: palette.background,
     textTheme: textTheme,
+    // La paleta propia queda disponible vía `context.palette`.
     extensions: [palette],
     dividerColor: palette.border,
     splashFactory: InkSparkle.splashFactory,
+
+    // Barra superior plana, centrada y del mismo color del fondo.
     appBarTheme: AppBarTheme(
       backgroundColor: palette.background,
       surfaceTintColor: Colors.transparent,
@@ -86,6 +102,8 @@ ThemeData buildAppTheme(Brightness brightness) {
       centerTitle: true,
       titleTextStyle: textTheme.titleLarge,
     ),
+
+    // Botones principales de ancho completo y esquinas redondeadas.
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         minimumSize: const Size.fromHeight(56),
@@ -111,6 +129,8 @@ ThemeData buildAppTheme(Brightness brightness) {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       ),
     ),
+
+    // Campos de texto: relleno, borde suave y estados de foco/error.
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: palette.surface,
@@ -134,6 +154,8 @@ ThemeData buildAppTheme(Brightness brightness) {
       thickness: 1,
       space: 1,
     ),
+
+    // Avisos flotantes con contraste en ambos temas.
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: isLight ? scheme.inverseSurface : palette.surfaceAlt,
@@ -146,6 +168,8 @@ ThemeData buildAppTheme(Brightness brightness) {
         side: isLight ? BorderSide.none : BorderSide(color: palette.border),
       ),
     ),
+
+    // Hojas inferiores y diálogos con las esquinas del diseño.
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: palette.surface,
       surfaceTintColor: Colors.transparent,
@@ -160,6 +184,8 @@ ThemeData buildAppTheme(Brightness brightness) {
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
     ),
+
+    // Selección de texto con el color principal de la app.
     textSelectionTheme: TextSelectionThemeData(
       cursorColor: scheme.primary,
       selectionColor: scheme.primary.withValues(alpha: 0.25),

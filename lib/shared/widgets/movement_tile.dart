@@ -1,3 +1,12 @@
+// Archivo: lib/shared/widgets/movement_tile.dart
+//
+// Piezas visuales relacionadas con cuentas y movimientos:
+// - `AccountCard`: tarjeta horizontal de una cuenta.
+// - `MovementTile`: fila reutilizable de un movimiento.
+//
+// La fila solo se vuelve pulsable cuando recibe `onTap`, para no exigir un
+// ancestro `Material` cuando es puramente informativa.
+
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_colors.dart';
@@ -6,6 +15,10 @@ import 'app_card.dart';
 import 'common.dart';
 import 'money_text.dart';
 
+/// Tarjeta compacta para mostrar una cuenta y su saldo.
+///
+/// Se usa en carruseles horizontales; el ancho es fijo para que todas las
+/// tarjetas midan igual.
 class AccountCard extends StatelessWidget {
   const AccountCard({
     super.key,
@@ -66,6 +79,10 @@ class AccountCard extends StatelessWidget {
   }
 }
 
+/// Fila de un movimiento: avatar de categoría, título, subtítulo e importe.
+///
+/// El importe llega con signo (`-450`, `+12000`); `MoneyText` se encarga de
+/// pintarlo y de usar el color de ingreso cuando es positivo.
 class MovementTile extends StatelessWidget {
   const MovementTile({
     super.key,
@@ -131,6 +148,7 @@ class MovementTile extends StatelessWidget {
       ),
     );
 
+    // Sin acción no hace falta `InkWell` (ni un `Material` ancestro).
     if (onTap == null) return content;
     return InkWell(
       onTap: onTap,

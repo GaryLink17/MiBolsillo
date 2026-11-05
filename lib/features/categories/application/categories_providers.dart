@@ -1,3 +1,8 @@
+// Archivo: lib/features/categories/application/categories_providers.dart
+//
+// Providers de categorías. Igual que cuentas y movimientos, devuelven una
+// lista vacía en modo local para que la interfaz muestre estados vacíos.
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/application/auth_providers.dart';

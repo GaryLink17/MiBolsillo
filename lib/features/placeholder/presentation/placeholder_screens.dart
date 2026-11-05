@@ -1,3 +1,11 @@
+// Archivo: lib/features/placeholder/presentation/placeholder_screens.dart
+//
+// Pantallas temporales de las secciones que todavía no tienen datos reales.
+// Mantienen la navegación y el diseño mientras se implementan sus funciones.
+//
+// Cuando se implemente una sección (por ejemplo Cuentas y metas), se reemplaza
+// su clase por la pantalla real y se elimina de aquí.
+
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_spacing.dart';
@@ -53,6 +61,7 @@ class FeaturePlaceholderScreen extends StatelessWidget {
   }
 }
 
+/// Placeholder de Cuentas. Se sustituirá por "Cuentas y metas" en la Parte 3.
 class AccountsScreen extends StatelessWidget {
   const AccountsScreen({super.key});
 
@@ -67,6 +76,7 @@ class AccountsScreen extends StatelessWidget {
   }
 }
 
+/// Placeholder de Categorías.
 class CategoriesScreen extends StatelessWidget {
   const CategoriesScreen({super.key});
 

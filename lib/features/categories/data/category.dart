@@ -1,8 +1,16 @@
+// Archivo: lib/features/categories/data/category.dart
+//
+// Modelo de categoría. La base guarda el icono como texto corto
+// (`restaurant`, `home`, ...); aquí se traduce a un `IconData` de Flutter.
+
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_colors.dart';
 
 /// Tipo de categoría tal como lo guarda la base (`category_kind`).
+///
+/// Las categorías de gasto solo aparecen en gastos y las de ingreso solo en
+/// ingresos. Cualquier valor distinto de `ingreso` se trata como gasto.
 enum CategoryKind {
   gasto('Gasto'),
   ingreso('Ingreso');
@@ -16,6 +24,7 @@ enum CategoryKind {
   }
 }
 
+/// Categoría visible para el usuario.
 @immutable
 class Category {
   const Category({
@@ -32,6 +41,7 @@ class Category {
   final CategoryTone tone;
   final IconData icon;
 
+  /// Construye una categoría desde una fila de Supabase.
   factory Category.fromMap(Map<String, dynamic> map) {
     return Category(
       id: map['id'] as String,
@@ -42,6 +52,7 @@ class Category {
     );
   }
 
+  /// Tono de color; si la base trae un valor desconocido se usa `other`.
   static CategoryTone _toneFromDb(String? value) {
     return CategoryTone.values.firstWhere(
       (tone) => tone.name == value,
@@ -49,6 +60,7 @@ class Category {
     );
   }
 
+  /// Traduce el nombre corto guardado en la base a un icono de Material.
   static IconData _iconFromDb(String? value) {
     return switch (value) {
       'restaurant' => Icons.restaurant_rounded,

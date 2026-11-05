@@ -1,3 +1,8 @@
+// Archivo: test/login_screen_test.dart
+//
+// Pruebas de la pantalla de acceso. Se sustituye el repositorio por `null`
+// para trabajar en modo local y no tocar Supabase.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,6 +10,7 @@ import 'package:mibolsillo/app/theme/app_theme.dart';
 import 'package:mibolsillo/features/auth/application/auth_providers.dart';
 import 'package:mibolsillo/features/auth/presentation/login_screen.dart';
 
+/// Construye la pantalla con la nube desactivada.
 Widget _buildLogin() {
   return ProviderScope(
     overrides: [authRepositoryProvider.overrideWithValue(null)],
@@ -24,6 +30,7 @@ void main() {
 
     expect(find.text('Bienvenido de nuevo'), findsOneWidget);
 
+    // Enviar el formulario vacío debe mostrar los dos errores de validación.
     await tester.tap(find.text('Entrar'));
     await tester.pumpAndSettle();
 
@@ -35,6 +42,7 @@ void main() {
     await tester.pumpWidget(_buildLogin());
     await tester.pumpAndSettle();
 
+    // Con datos válidos, el flujo llega hasta el repositorio, que es `null`.
     await tester.enterText(
       find.byType(TextFormField).first,
       'persona@correo.com',

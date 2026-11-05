@@ -1,3 +1,8 @@
+// Archivo: lib/features/auth/data/auth_repository.dart
+//
+// Envuelve las operaciones de autenticación de Supabase y convierte sus
+// mensajes en textos en español para la interfaz.
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Error de autenticación con un mensaje ya listo para mostrar al usuario.
@@ -17,6 +22,10 @@ class AuthRepository {
 
   Session? get currentSession => _client.auth.currentSession;
 
+  /// Inicia sesión con correo y contraseña.
+  ///
+  /// Devuelve la sesión creada. Si Supabase rechaza las credenciales o falla
+  /// la red, lanza [AuthFailure] con un mensaje entendible.
   Future<Session?> signIn({
     required String email,
     required String password,
@@ -36,6 +45,11 @@ class AuthRepository {
     }
   }
 
+  /// Crea una cuenta nueva con nombre, correo y contraseña.
+  ///
+  /// El nombre se guarda en `user_metadata` para mostrarlo luego en Ajustes.
+  /// Si el proyecto exige confirmación de correo, `response.session` será
+  /// `null`; la pantalla de registro lo usa para avisar al usuario.
   Future<Session?> signUp({
     required String fullName,
     required String email,
@@ -57,6 +71,7 @@ class AuthRepository {
     }
   }
 
+  /// Cierra la sesión del dispositivo.
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
@@ -65,6 +80,10 @@ class AuthRepository {
     }
   }
 
+  /// Traduce los mensajes técnicos de Supabase a textos para el usuario.
+  ///
+  /// Se compara en minúsculas porque los textos originales pueden variar en
+  /// mayúsculas según el proveedor.
   static String _translate(String raw) {
     final message = raw.toLowerCase();
     if (message.contains('invalid login credentials')) {

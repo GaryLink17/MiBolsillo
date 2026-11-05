@@ -1,3 +1,8 @@
+// Archivo: lib/features/auth/application/auth_providers.dart
+//
+// Providers de autenticación. Mantienen una única instancia del cliente de
+// Supabase, del repositorio de acceso y de la sesión actual.
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -9,6 +14,7 @@ final supabaseClientProvider = Provider<SupabaseClient?>(
   (ref) => supabaseClient,
 );
 
+/// Repositorio de autenticación, o `null` en modo local.
 final authRepositoryProvider = Provider<AuthRepository?>((ref) {
   final client = ref.watch(supabaseClientProvider);
   return client == null ? null : AuthRepository(client);
@@ -25,6 +31,8 @@ class SessionController extends Notifier<Session?> {
     final client = ref.watch(supabaseClientProvider);
     if (client == null) return null;
 
+    // Se escucha el ciclo de autenticación para reflejar inicio y cierre de
+    // sesión en toda la app (el router reacciona a este provider).
     var disposed = false;
     final subscription = client.auth.onAuthStateChange.listen((state) {
       if (!disposed) this.state = state.session;
@@ -34,6 +42,7 @@ class SessionController extends Notifier<Session?> {
       subscription.cancel();
     });
 
+    // Valor inicial: la sesión que Supabase restauró al iniciar.
     return client.auth.currentSession;
   }
 }

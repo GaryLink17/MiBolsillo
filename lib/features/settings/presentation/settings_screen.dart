@@ -1,3 +1,12 @@
+// Archivo: lib/features/settings/presentation/settings_screen.dart
+//
+// Pantalla de Ajustes. Agrupa:
+// - el perfil y el estado de la sesión;
+// - preferencias generales (tema, moneda, categorías);
+// - seguridad y datos (funciones futuras);
+// - ayuda (repetir tutorial, acerca de);
+// - cerrar o iniciar sesión.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +29,8 @@ class SettingsScreen extends ConsumerWidget {
     final palette = context.palette;
     final themeMode = ref.watch(themeModeProvider);
     final session = ref.watch(sessionProvider);
+
+    // El nombre se guarda en `user_metadata` durante el registro.
     final fullName = session?.user.userMetadata?['full_name'] as String?;
     final hasSession = session != null;
 
@@ -36,6 +47,7 @@ class SettingsScreen extends ConsumerWidget {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
               children: [
+                // Tarjeta de perfil. Sin sesión, invita a entrar.
                 AppCard(
                   onTap: hasSession ? null : () => context.push('/entrar'),
                   child: Row(
@@ -78,6 +90,7 @@ class SettingsScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
+                      // Icono de nube si hay sesión; flecha si se puede entrar.
                       if (hasSession)
                         Icon(
                           Icons.cloud_done_outlined,
@@ -89,6 +102,8 @@ class SettingsScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+
+                // Preferencias generales.
                 _sectionLabel(context, 'General'),
                 AppCard(
                   padding: EdgeInsets.zero,
@@ -113,6 +128,8 @@ class SettingsScreen extends ConsumerWidget {
                               ],
                             ),
                             const SizedBox(height: AppSpacing.sm),
+                            // El cambio se guarda de inmediato en
+                            // `shared_preferences` mediante el provider.
                             SegmentedSelector<ThemeMode>(
                               value: themeMode,
                               onChanged: (mode) => ref
@@ -167,6 +184,8 @@ class SettingsScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+
+                // Seguridad y datos: pendientes por ahora.
                 _sectionLabel(context, 'Seguridad y datos'),
                 AppCard(
                   padding: EdgeInsets.zero,
@@ -192,6 +211,8 @@ class SettingsScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+
+                // Ayuda.
                 _sectionLabel(context, 'Ayuda'),
                 AppCard(
                   padding: EdgeInsets.zero,
@@ -200,6 +221,7 @@ class SettingsScreen extends ConsumerWidget {
                       _SettingsTile(
                         icon: Icons.school_outlined,
                         title: 'Ver tutorial de nuevo',
+                        // `extra: true` activa el modo replay del tutorial.
                         onTap: () => context.push('/onboarding', extra: true),
                       ),
                       const Divider(),
@@ -212,6 +234,8 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
+
+                // Acción de sesión según el estado.
                 if (hasSession)
                   OutlinedButton.icon(
                     onPressed: () => _signOut(context, ref),
@@ -243,6 +267,7 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  /// Encabezado de un grupo de ajustes.
   Widget _sectionLabel(BuildContext context, String label) {
     final palette = context.palette;
     return Padding(
@@ -255,6 +280,9 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  /// Cierra la sesión y avisa del resultado.
+  ///
+  /// El router reacciona al cambio de sesión y lleva al acceso.
   Future<void> _signOut(BuildContext context, WidgetRef ref) async {
     final repository = ref.read(authRepositoryProvider);
     if (repository == null) return;
@@ -268,12 +296,14 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
+  /// Muestra un aviso temporal, reemplazando el anterior si lo hubiera.
   void _snack(BuildContext context, String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
+  /// Diálogo con la versión y una breve descripción de la app.
   void _showAbout(BuildContext context) {
     showDialog<void>(
       context: context,
@@ -295,6 +325,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
+/// Fila de ajuste: icono, título, acción y elemento final opcional.
 class _SettingsTile extends StatelessWidget {
   const _SettingsTile({
     required this.icon,
@@ -312,6 +343,8 @@ class _SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = context.palette;
+    // Si no se indica `trailing`, se usa una flecha cuando la fila es
+    // pulsable o un badge "Pronto" cuando no lo es.
     final trailingWidget =
         trailing ??
         (onTap != null

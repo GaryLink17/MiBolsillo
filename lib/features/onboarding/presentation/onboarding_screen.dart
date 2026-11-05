@@ -1,3 +1,14 @@
+// Archivo: lib/features/onboarding/presentation/onboarding_screen.dart
+//
+// Tutorial inicial de cuatro pasos. Se muestra una sola vez (la preferencia
+// `onboarding_completed` lo controla), pero también se puede volver a ver
+// desde Ajustes con `replay: true`.
+//
+// Al terminar:
+// - si se abrió en modo replay, se cierra la pantalla;
+// - si no hay sesión, se va al acceso;
+// - si hay sesión y no tiene cuentas, se pide el saldo inicial.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +19,7 @@ import '../../../core/preferences/app_preferences.dart';
 import '../../accounts/application/accounts_providers.dart';
 import '../../auth/application/auth_providers.dart';
 
+/// Contenido de una página del tutorial.
 class _OnboardingPageData {
   const _OnboardingPageData({
     required this.icon,
@@ -20,6 +32,7 @@ class _OnboardingPageData {
   final String description;
 }
 
+/// Páginas del tutorial, en orden.
 const _pages = [
   _OnboardingPageData(
     icon: Icons.account_balance_wallet_outlined,
@@ -66,6 +79,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.dispose();
   }
 
+  /// Marca el tutorial como completado y decide a dónde ir.
   Future<void> _finish() async {
     await ref.read(onboardingCompletedProvider.notifier).complete();
     if (!mounted) return;
@@ -73,6 +87,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       context.pop();
       return;
     }
+
     final loggedIn = ref.read(sessionProvider) != null;
     if (!loggedIn) {
       context.go('/entrar');
@@ -81,6 +96,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     // Un usuario nuevo termina el tutorial con las cuentas vacías: le pedimos
     // el saldo inicial antes de entrar. Si ya tiene cuentas, va directo.
+    // Ante un error de red se asume que ya tiene cuentas para no bloquearlo.
     var hasAccounts = true;
     try {
       hasAccounts = (await ref.read(accountsProvider.future)).isNotEmpty;
@@ -91,6 +107,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     context.go(hasAccounts ? '/inicio' : '/saldo-inicial');
   }
 
+  /// Avanza a la siguiente página o termina si ya es la última.
   void _next() {
     if (_isLast) {
       _finish();
@@ -116,6 +133,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
               child: Column(
                 children: [
+                  // Logo y acción de la esquina: cerrar (replay) u omitir.
                   Row(
                     children: [
                       Container(
@@ -145,6 +163,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                     ],
                   ),
+                  // Páginas desplazables horizontalmente.
                   Expanded(
                     child: PageView.builder(
                       controller: _controller,
@@ -154,6 +173,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         final page = _pages[index];
                         return LayoutBuilder(
                           builder: (context, constraints) {
+                            // En pantallas bajas la página puede desplazarse
+                            // verticalmente sin desbordar.
                             return SingleChildScrollView(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               child: ConstrainedBox(
@@ -163,6 +184,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
+                                    // Ilustración circular con doble halo.
                                     Container(
                                       width: 190,
                                       height: 190,
@@ -216,6 +238,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       },
                     ),
                   ),
+                  // Indicadores de página.
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

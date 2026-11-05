@@ -1,3 +1,8 @@
+// Archivo: lib/features/accounts/data/accounts_repository.dart
+//
+// Acceso a las cuentas del usuario en Supabase. Traduce errores técnicos a
+// mensajes que se pueden mostrar directamente en la interfaz.
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'account.dart';
@@ -18,6 +23,10 @@ class AccountsRepository {
   final SupabaseClient _client;
 
   /// Cuentas activas con su saldo real (saldo inicial + movimientos).
+  ///
+  /// Se hacen dos consultas: una a `accounts` para los datos y otra a la vista
+  /// `account_balances` para los saldos. Luego se combinan en memoria usando el
+  /// id. Se filtra `is_archived = false` para no mostrar cuentas ocultas.
   Future<List<AccountSummary>> list() async {
     try {
       final accounts = await _client
@@ -31,6 +40,7 @@ class AccountsRepository {
           .select('id, balance')
           .eq('is_archived', false);
 
+      // Índice id → saldo para no recorrer la lista de saldos por cada cuenta.
       final balanceById = <String, double>{
         for (final row in balances)
           row['id'] as String: (row['balance'] as num?)?.toDouble() ?? 0,
@@ -57,6 +67,9 @@ class AccountsRepository {
   }
 
   /// Crea las cuentas del saldo inicial en una sola operación.
+  ///
+  /// Se envía una lista para que Supabase haga un único insert. El `user_id`
+  /// sale de la sesión actual y queda protegido por las políticas RLS.
   Future<void> createInitial(List<InitialAccount> accounts) async {
     if (accounts.isEmpty) return;
 
@@ -76,6 +89,7 @@ class AccountsRepository {
           },
       ]);
     } on PostgrestException catch (error) {
+      // 42501 = la política RLS rechazó la operación.
       if (error.code == '42501') {
         throw const AccountsFailure(
           'Tu cuenta no tiene permisos para guardar. Vuelve a entrar.',

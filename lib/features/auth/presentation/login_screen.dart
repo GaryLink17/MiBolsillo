@@ -1,3 +1,8 @@
+// Archivo: lib/features/auth/presentation/login_screen.dart
+//
+// Pantalla de acceso con correo y contraseña. Valida el formulario, llama al
+// repositorio de autenticación y muestra los errores en el propio formulario.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +30,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   void dispose() {
+    // Liberar los controladores evita fugas de memoria.
     _email.dispose();
     _password.dispose();
     super.dispose();
@@ -47,6 +53,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       await repository.signIn(email: _email.text, password: _password.text);
       if (!mounted) return;
+      // Si la pantalla se abrió desde otra (por ejemplo Ajustes), se vuelve a
+      // ella; si es la raíz, se navega al inicio.
       if (context.canPop()) {
         context.pop();
       } else {
@@ -99,6 +107,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               validator: (value) {
                 final text = value?.trim() ?? '';
                 if (text.isEmpty) return 'Escribe tu correo.';
+                // Validación ligera: la comprobación real la hace Supabase.
                 if (!text.contains('@') || !text.contains('.')) {
                   return 'Escribe un correo válido.';
                 }

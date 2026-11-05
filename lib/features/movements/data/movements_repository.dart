@@ -1,3 +1,8 @@
+// Archivo: lib/features/movements/data/movements_repository.dart
+//
+// Acceso a los movimientos en Supabase: crear, listar y calcular totales del
+// mes. Los errores se traducen a mensajes para la interfaz.
+
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -18,9 +23,13 @@ class MovementsRepository {
 
   final SupabaseClient _client;
 
+  // Supabase espera fechas como `yyyy-MM-dd` para columnas `date`.
   static final _dateFormat = DateFormat('yyyy-MM-dd');
 
   /// Inserta un gasto o un ingreso del usuario con la sesión actual.
+  ///
+  /// El monto se redondea a dos decimales antes de enviarlo y la nota se
+  /// recorta; si queda vacía se guarda `null` para no ensuciar la base.
   Future<void> create(MovementDraft draft) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) {
@@ -50,7 +59,11 @@ class MovementsRepository {
 
   /// Movimientos del usuario, del más reciente al más antiguo.
   ///
-  /// El ahorro se incorpora en la entrega de metas.
+  /// Se piden también el nombre de la cuenta y los datos de la categoría para
+  /// que la lista no tenga que hacer consultas adicionales por cada fila.
+  ///
+  /// El ahorro se incorpora en la entrega de metas; por eso hoy se filtra solo
+  /// `gasto` e `ingreso`.
   Future<List<MovementEntry>> list() async {
     try {
       final rows = await _client
@@ -79,7 +92,8 @@ class MovementsRepository {
   /// Ingresos y gastos del mes indicado.
   ///
   /// Se consulta aparte de la lista para que siga siendo exacto cuando la
-  /// lista tenga filtros y paginación.
+  /// lista tenga filtros y paginación. El rango es `[inicio, inicio del mes
+  /// siguiente)`, así no hay que calcular el último día del mes.
   Future<MovementTotals> monthTotals(DateTime month) async {
     final start = DateTime(month.year, month.month);
     final nextMonth = DateTime(month.year, month.month + 1);
@@ -92,6 +106,8 @@ class MovementsRepository {
           .gte('occurred_on', _dateFormat.format(start))
           .lt('occurred_on', _dateFormat.format(nextMonth));
 
+      // La suma se hace en el cliente porque son pocas filas mensuales y así
+      // se evita una función RPC adicional en la base.
       var income = 0.0;
       var expenses = 0.0;
       for (final row in rows) {
@@ -115,6 +131,7 @@ class MovementsRepository {
     }
   }
 
+  /// Traduce códigos de error de PostgreSQL a mensajes para el usuario.
   static String _translate(PostgrestException error) {
     return switch (error.code) {
       '42501' => 'Tu cuenta no tiene permisos para guardar movimientos.',

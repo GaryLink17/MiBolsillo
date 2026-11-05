@@ -1,8 +1,16 @@
+// Archivo: lib/shared/widgets/empty_state.dart
+//
+// Estado vacío genérico: icono, título, mensaje y una acción opcional. Se usa
+// cuando una lista no tiene datos todavía.
+
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_spacing.dart';
 
+/// Mensaje centrado para pantallas sin contenido.
+///
+/// La acción es opcional; cuando existe se muestra como un `TextButton`.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,

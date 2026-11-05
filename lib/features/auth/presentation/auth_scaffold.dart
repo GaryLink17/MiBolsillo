@@ -1,9 +1,19 @@
+// Archivo: lib/features/auth/presentation/auth_scaffold.dart
+//
+// Piezas compartidas por las pantallas de acceso y registro:
+// - `AuthScaffold`: marco con logo, título, subtítulo y formulario.
+// - `AuthErrorText`: caja roja para mostrar errores dentro del formulario.
+// - `AuthSubmitButton`: botón principal con estado de carga.
+
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 
 /// Marco común de las pantallas de acceso: logo, título y formulario.
+///
+/// Si hay una pantalla anterior muestra una flecha para volver; si no, deja el
+/// mismo espacio vacío para que el contenido no salte.
 class AuthScaffold extends StatelessWidget {
   const AuthScaffold({
     super.key,
@@ -33,6 +43,7 @@ class AuthScaffold extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Botón volver o espacio equivalente.
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Navigator.of(context).canPop()
@@ -44,6 +55,7 @@ class AuthScaffold extends StatelessWidget {
                         : const SizedBox(height: 48),
                   ),
                   const SizedBox(height: AppSpacing.sm),
+                  // Logo cuadrado de la app.
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Container(
@@ -75,6 +87,7 @@ class AuthScaffold extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xxl),
+                  // Aquí cada pantalla coloca su formulario.
                   child,
                   if (footer != null) ...[
                     const SizedBox(height: AppSpacing.xl),
@@ -122,6 +135,10 @@ class AuthErrorText extends StatelessWidget {
   }
 }
 
+/// Botón principal de las pantallas de acceso.
+///
+/// Mientras `loading` es `true` se deshabilita y muestra un indicador, lo que
+/// evita envíos duplicados.
 class AuthSubmitButton extends StatelessWidget {
   const AuthSubmitButton({
     super.key,

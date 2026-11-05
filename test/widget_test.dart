@@ -1,3 +1,9 @@
+// Archivo: test/widget_test.dart
+//
+// Pruebas de navegación completa de la app: bienvenida, tutorial, acceso,
+// saldo inicial e inicio. Se usa una sesión ficticia para las pantallas
+// internas y preferencias simuladas para no tocar el dispositivo.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +14,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Sesión ficticia para probar las pantallas internas sin red.
+///
+/// Reemplaza al `SessionController` real y devuelve siempre una sesión con un
+/// usuario de prueba.
 class _FakeSessionController extends SessionController {
   @override
   Session? build() {
@@ -26,6 +35,9 @@ class _FakeSessionController extends SessionController {
   }
 }
 
+/// Construye la app con preferencias simuladas y, si se pide, sesión ficticia.
+///
+/// `values` permite arrancar como si el tutorial ya estuviera completado.
 Future<Widget> _buildApp({
   Map<String, Object> values = const {},
   bool signedIn = false,
@@ -41,6 +53,10 @@ Future<Widget> _buildApp({
   );
 }
 
+/// Pulsa un texto, desplazando la pantalla si hace falta para verlo.
+///
+/// Se usa en formularios y tutoriales largos donde el botón puede quedar fuera
+/// del área visible.
 Future<void> _tapVisible(WidgetTester tester, String label) async {
   final finder = find.text(label);
   if (finder.evaluate().isEmpty) {
@@ -64,6 +80,7 @@ void main() {
     expect(find.text('Mi Bolsillo'), findsOneWidget);
     expect(find.text('Comenzar'), findsOneWidget);
     expect(find.text('Ya tengo cuenta'), findsOneWidget);
+    // No debe asomar nada del inicio.
     expect(find.text('Balance total'), findsNothing);
   });
 
@@ -94,6 +111,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await _tapVisible(tester, 'Comenzar');
+    // Tres "Siguiente" para llegar al cuarto paso.
     for (var step = 0; step < 3; step++) {
       await _tapVisible(tester, 'Siguiente');
     }
@@ -123,6 +141,7 @@ void main() {
     }
     await _tapVisible(tester, 'Empezar');
 
+    // Sin cuentas, el tutorial deriva al saldo inicial.
     expect(find.text('¿Con cuánto empiezas?'), findsOneWidget);
     expect(find.text('Efectivo'), findsOneWidget);
     expect(find.text('Banco'), findsOneWidget);
@@ -157,6 +176,7 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
+      // El tutorial ya está completado: la app entra directo al inicio.
       await _buildApp(values: {'onboarding_completed': true}, signedIn: true),
     );
     await tester.pumpAndSettle();
@@ -165,6 +185,7 @@ void main() {
 
     expect(find.text('¿Con cuánto empiezas?'), findsOneWidget);
 
+    // Se apagan las dos cuentas activas por defecto (Efectivo y Banco).
     for (var i = 0; i < 2; i++) {
       await tester.tap(find.byType(Switch).at(i));
       await tester.pumpAndSettle();
@@ -180,6 +201,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // Sin datos reales, Inicio debe mostrar estados vacíos, no cifras.
     expect(find.text('Aún no tienes cuentas'), findsOneWidget);
 
     await tester.drag(find.byType(ListView), const Offset(0, -400));

@@ -1,3 +1,16 @@
+// Archivo: lib/features/movements/presentation/new_movement_screen.dart
+//
+// Formulario para registrar un gasto o un ingreso.
+//
+// Flujo:
+// 1. El usuario elige el tipo (Gasto/Ingreso).
+// 2. Escribe el monto, elige cuenta y, opcionalmente, categoría y nota.
+// 3. Puede cambiar la fecha (no futura).
+// 4. Al guardar se inserta en Supabase y se invalidan cuentas, movimientos y
+//    totales para que Inicio y la lista se actualicen.
+//
+// El ahorro no aparece aquí: necesita una meta, que llega en la Parte 3.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,6 +60,8 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
     super.dispose();
   }
 
+  /// Cambia entre gasto e ingreso. Se limpia la categoría porque las
+  /// categorías de gasto no aplican a un ingreso (y viceversa).
   void _changeType(MovementType type) {
     if (type == _type) return;
     setState(() {
@@ -56,6 +71,8 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
     });
   }
 
+  /// Abre el calendario. No permite fechas futuras para no registrar
+  /// movimientos que todavía no ocurrieron.
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -68,12 +85,16 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
     setState(() => _date = DateUtils.dateOnly(picked));
   }
 
+  /// Valida y guarda el movimiento.
   Future<void> _submit() async {
+    // Se cierra el teclado para que el usuario vea el resultado.
     FocusScope.of(context).unfocus();
     setState(() => _error = null);
 
     if (!_formKey.currentState!.validate()) return;
 
+    // La cuenta no es un campo de `Form`, así que se valida aparte con un
+    // mensaje distinto según el tipo.
     if (_accountId == null) {
       setState(
         () => _error = _type == MovementType.gasto
@@ -93,6 +114,8 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
     if (amount == null) return;
 
     setState(() => _saving = true);
+    // Se capturan antes del `await` para no usar el contexto después de un
+    // posible desmontaje.
     final messenger = ScaffoldMessenger.of(context);
     final successMessage = '${_type.label} registrado.';
 
@@ -107,6 +130,7 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
           note: _note.text,
         ),
       );
+      // Refresca todo lo que depende de este movimiento.
       ref.invalidate(accountsProvider);
       ref.invalidate(movementsProvider);
       ref.invalidate(monthlyTotalsProvider);
@@ -131,6 +155,8 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
     final accountsAsync = ref.watch(accountsProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
     final accounts = accountsAsync.value ?? const <AccountSummary>[];
+
+    // Solo se muestran las categorías del tipo elegido.
     final categories = (categoriesAsync.value ?? const <Category>[])
         .where((category) => category.kind == _type.categoryKind)
         .toList(growable: false);
@@ -144,6 +170,7 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Cabecera con botón volver.
                 Row(
                   children: [
                     CircleIconButton(
@@ -161,6 +188,8 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.lg),
+
+                // Selector Gasto / Ingreso.
                 SegmentedSelector<MovementType>(
                   options: const [
                     SegmentedOption(value: MovementType.gasto, label: 'Gasto'),
@@ -173,6 +202,8 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                   onChanged: _changeType,
                 ),
                 const SizedBox(height: AppSpacing.lg),
+
+                // Monto.
                 TextFormField(
                   key: const ValueKey('movement-amount'),
                   controller: _amount,
@@ -203,6 +234,8 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                   },
                 ),
                 const SizedBox(height: AppSpacing.lg),
+
+                // Cuenta de origen/destino.
                 const _SectionLabel('¿De qué cuenta?'),
                 const SizedBox(height: AppSpacing.xs),
                 if (accountsAsync.isLoading && accounts.isEmpty)
@@ -213,6 +246,8 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                     onRetry: () => ref.invalidate(accountsProvider),
                   )
                 else if (accounts.isEmpty)
+                  // Sin cuentas no se puede registrar nada: se guía al saldo
+                  // inicial.
                   AppCard(
                     child: Column(
                       children: [
@@ -264,6 +299,9 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                     ],
                   ),
                 const SizedBox(height: AppSpacing.lg),
+
+                // Categoría opcional. El chip "Sin categoría" deja el campo en
+                // null.
                 const _SectionLabel('Categoría (opcional)'),
                 const SizedBox(height: AppSpacing.xs),
                 if (categoriesAsync.isLoading && categories.isEmpty)
@@ -299,6 +337,8 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                     ],
                   ),
                 const SizedBox(height: AppSpacing.lg),
+
+                // Fecha: se muestra como tarjeta pulsable.
                 AppCard(
                   onTap: _saving ? null : _pickDate,
                   padding: const EdgeInsets.symmetric(
@@ -336,6 +376,8 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
+
+                // Nota libre, limitada a 200 caracteres.
                 TextFormField(
                   controller: _note,
                   maxLines: 2,
@@ -346,11 +388,14 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                     hintText: 'Ej. almuerzo con el equipo',
                   ),
                 ),
+
                 if (_error != null) ...[
                   const SizedBox(height: AppSpacing.md),
                   _ErrorBox(_error!),
                 ],
                 const SizedBox(height: AppSpacing.xl),
+
+                // Botón de guardado; el texto depende del tipo.
                 FilledButton(
                   onPressed: _saving ? null : _submit,
                   child: _saving
@@ -371,6 +416,7 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
   }
 }
 
+/// Etiqueta pequeña encima de un grupo de chips.
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel(this.text);
 
@@ -386,6 +432,7 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
+/// Chip de selección usado para cuentas y categorías.
 class _SelectChip extends StatelessWidget {
   const _SelectChip({
     required this.label,
@@ -427,6 +474,7 @@ class _SelectChip extends StatelessWidget {
   }
 }
 
+/// Indicador de carga pequeño para bloques dentro del formulario.
 class _InlineLoader extends StatelessWidget {
   const _InlineLoader();
 
@@ -443,6 +491,7 @@ class _InlineLoader extends StatelessWidget {
   }
 }
 
+/// Error en línea con botón "Reintentar".
 class _InlineError extends StatelessWidget {
   const _InlineError({required this.message, required this.onRetry});
 
@@ -467,6 +516,7 @@ class _InlineError extends StatelessWidget {
   }
 }
 
+/// Caja de error general del formulario.
 class _ErrorBox extends StatelessWidget {
   const _ErrorBox(this.message);
 

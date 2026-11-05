@@ -1,3 +1,8 @@
+// Archivo: lib/features/welcome/presentation/welcome_screen.dart
+//
+// Primera pantalla que ve un usuario sin sesión. Presenta la app y ofrece dos
+// caminos: empezar el tutorial o ir directo al acceso.
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -22,6 +27,7 @@ class WelcomeScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Logo de la app.
                   Center(
                     child: Container(
                       width: 92,
@@ -55,6 +61,7 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xxl),
+                  // Tres beneficios breves para explicar la propuesta.
                   const _WelcomePoint(
                     icon: Icons.account_balance_wallet_outlined,
                     title: 'Todo en un solo lugar',
@@ -95,6 +102,7 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
+/// Fila con icono, título y descripción usada en la bienvenida.
 class _WelcomePoint extends StatelessWidget {
   const _WelcomePoint({
     required this.icon,

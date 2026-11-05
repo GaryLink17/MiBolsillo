@@ -1,3 +1,8 @@
+// Archivo: lib/shared/widgets/money_text.dart
+//
+// Renderiza un monto con el estilo del diseño: símbolo `RD$` más pequeño,
+// decimales atenuados y signo opcional. Se encoge si no cabe.
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -5,6 +10,9 @@ import '../../app/theme/app_colors.dart';
 
 /// Monto con el símbolo `RD$` y decimales en un tamaño/color secundario,
 /// como en el diseño. Se adapta si el espacio es reducido.
+///
+/// Se construye con `Text.rich` para poder dar estilos distintos al símbolo,
+/// la parte entera y los decimales dentro de un mismo texto.
 class MoneyText extends StatelessWidget {
   const MoneyText(
     this.amount, {
@@ -34,6 +42,9 @@ class MoneyText extends StatelessWidget {
     final base = style ?? theme.textTheme.titleLarge!;
     final fontSize = base.fontSize ?? 16;
     final color = base.color ?? theme.colorScheme.onSurface;
+
+    // Se formatea el valor absoluto y el signo se añade aparte para poder
+    // reducirlo de tamaño como en el diseño.
     final absolute = amount.abs();
     final formatted = NumberFormat(
       showDecimals ? '#,##0.00' : '#,##0',
@@ -73,6 +84,8 @@ class MoneyText extends StatelessWidget {
       ],
     );
 
+    // `FittedBox` evita desbordes en pantallas pequeñas sin cambiar el tamaño
+    // cuando hay espacio suficiente.
     return FittedBox(
       fit: BoxFit.scaleDown,
       alignment: alignment,

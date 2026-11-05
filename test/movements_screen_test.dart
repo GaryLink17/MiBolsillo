@@ -1,3 +1,9 @@
+// Archivo: test/movements_screen_test.dart
+//
+// Pruebas de la pantalla Movimientos y de la sección de recientes en Inicio.
+// Se sustituyen los providers de datos por listas y totales fijos para no
+// depender de la red.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,6 +22,7 @@ import 'package:mibolsillo/features/movements/presentation/movements_screen.dart
 import 'package:mibolsillo/shared/widgets/money_text.dart';
 import 'package:mibolsillo/shared/widgets/movement_tile.dart';
 
+/// Categoría de gasto de prueba.
 const _comida = Category(
   id: 'categoria-comida',
   name: 'Comida',
@@ -24,6 +31,7 @@ const _comida = Category(
   icon: Icons.restaurant_rounded,
 );
 
+/// Categoría de ingreso de prueba.
 const _salario = Category(
   id: 'categoria-salario',
   name: 'Salario',
@@ -32,6 +40,7 @@ const _salario = Category(
   icon: Icons.payments_rounded,
 );
 
+/// Cuenta de prueba.
 const _account = AccountSummary(
   id: 'cuenta-efectivo',
   name: 'Efectivo',
@@ -39,6 +48,9 @@ const _account = AccountSummary(
   balance: 1500,
 );
 
+/// Construye la pantalla Movimientos con datos falsos.
+///
+/// Con `fails: true` el provider lanza un error para probar el estado de error.
 Widget _buildMovements({
   List<MovementEntry> movements = const [],
   bool fails = false,
@@ -62,6 +74,7 @@ Widget _buildMovements({
   );
 }
 
+/// Construye Inicio con cuentas, movimientos y totales controlados.
 Widget _buildHome({
   required List<MovementEntry> movements,
   required MovementTotals totals,
@@ -126,6 +139,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // Encabezados de día y títulos de cada fila.
     expect(find.text('Hoy'), findsOneWidget);
     expect(find.text('Ayer'), findsOneWidget);
     expect(find.text('Salario'), findsOneWidget);
@@ -133,6 +147,8 @@ void main() {
     expect(find.text('Taxi'), findsOneWidget);
     expect(find.byType(MovementRow), findsNWidgets(3));
 
+    // Los importes llegan a la fila con signo: gasto negativo, ingreso
+    // positivo.
     final amounts = tester
         .widgetList<MovementTile>(find.byType(MovementTile))
         .map((tile) => tile.amount);
@@ -153,6 +169,7 @@ void main() {
   testWidgets('Inicio muestra los totales reales y solo 5 recientes', (
     tester,
   ) async {
+    // Se agranda la superficie para que Inicio quepa completo.
     tester.view.physicalSize = const Size(800, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -179,10 +196,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // Hay 6 movimientos, pero Inicio solo muestra 5 y el botón "Ver todos".
     expect(find.text('Movimientos recientes'), findsOneWidget);
     expect(find.text('Ver todos'), findsOneWidget);
     expect(find.byType(MovementRow), findsNWidgets(5));
 
+    // Los totales del mes llegan a las tarjetas de Ingresos y Gastos.
     final amounts = tester
         .widgetList<MoneyText>(find.byType(MoneyText))
         .map((money) => money.amount);

@@ -1,3 +1,8 @@
+// Archivo: test/new_movement_screen_test.dart
+//
+// Pruebas del formulario de gasto/ingreso. Se inyectan cuentas y categorías
+// falsas mediante providers para no depender de Supabase.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +15,7 @@ import 'package:mibolsillo/features/categories/application/categories_providers.
 import 'package:mibolsillo/features/categories/data/category.dart';
 import 'package:mibolsillo/features/movements/presentation/new_movement_screen.dart';
 
+/// Cuenta de prueba con saldo conocido.
 const _accounts = [
   AccountSummary(
     id: 'cuenta-efectivo',
@@ -19,6 +25,7 @@ const _accounts = [
   ),
 ];
 
+/// Una categoría de gasto y otra de ingreso para comprobar el filtrado.
 const _categories = [
   Category(
     id: 'categoria-comida',
@@ -36,6 +43,7 @@ const _categories = [
   ),
 ];
 
+/// Construye la pantalla con datos falsos y la nube desactivada.
 Widget _buildScreen({
   List<AccountSummary> accounts = _accounts,
   List<Category> categories = _categories,
@@ -53,6 +61,10 @@ Widget _buildScreen({
   );
 }
 
+/// Desplaza hasta el botón de guardado y lo pulsa.
+///
+/// Es necesario porque el formulario es largo y el botón puede quedar fuera de
+/// la pantalla en el entorno de pruebas.
 Future<void> _tapSave(WidgetTester tester, String label) async {
   final finder = find.text(label);
   await tester.ensureVisible(finder);
@@ -116,6 +128,7 @@ void main() {
     await tester.pumpWidget(_buildScreen());
     await tester.pumpAndSettle();
 
+    // Con monto y cuenta válidos, el flujo llega al repositorio nulo.
     await tester.enterText(
       find.byKey(const ValueKey('movement-amount')),
       '100',

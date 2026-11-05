@@ -1,8 +1,17 @@
+// Archivo: lib/shared/widgets/app_card.dart
+//
+// Tarjeta y encabezado de sección reutilizables. Son la base visual de Inicio,
+// Movimientos, Cuentas y Ajustes.
+
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_spacing.dart';
 
+/// Tarjeta con fondo, borde y esquinas redondeadas.
+///
+/// Si se pasa `onTap`, se envuelve el contenido en `Material` + `InkWell` para
+/// que tenga efecto de pulsación. Si no, se evita `Material` innecesario.
 class AppCard extends StatelessWidget {
   const AppCard({
     super.key,
@@ -43,6 +52,8 @@ class AppCard extends StatelessWidget {
   }
 }
 
+/// Título de sección con una acción opcional a la derecha (por ejemplo,
+/// "Ver todos").
 class SectionHeader extends StatelessWidget {
   const SectionHeader({
     super.key,

@@ -1,7 +1,18 @@
+// Archivo: lib/app/theme/app_typography.dart
+//
+// Escala tipográfica de la app. Se define una sola vez para que todos los
+// textos mantengan el mismo tamaño, peso y altura de línea.
+
 import 'package:flutter/material.dart';
 
+/// Construye el `TextTheme` base de Mi Bolsillo.
+///
+/// `muted` se usa como color de los textos secundarios (`bodySmall`). El resto
+/// de colores se aplican después en `buildAppTheme` con `.apply(...)`.
 abstract final class AppTypography {
   static TextTheme textTheme({required Color muted}) {
+    // Las cifras tabulares hacen que los montos no "salten" al cambiar de
+    // dígito, algo importante en listas y balances.
     const tabular = [FontFeature.tabularFigures()];
     return TextTheme(
       displayLarge: const TextStyle(

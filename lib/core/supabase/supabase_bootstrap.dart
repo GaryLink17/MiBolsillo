@@ -1,3 +1,8 @@
+// Archivo: lib/core/supabase/supabase_bootstrap.dart
+//
+// Inicialización y acceso al cliente de Supabase. La app puede arrancar sin
+// credenciales (modo local); en ese caso este archivo devuelve `null`.
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/app_env.dart';
@@ -15,5 +20,8 @@ Future<void> initSupabaseIfConfigured() async {
 }
 
 /// Cliente listo para usar, o `null` si la app está en modo local.
+///
+/// Los repositorios reciben este cliente por constructor; así los tests pueden
+/// sustituirlo o trabajar sin red.
 SupabaseClient? get supabaseClient =>
     AppEnv.hasSupabase ? Supabase.instance.client : null;

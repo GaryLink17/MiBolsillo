@@ -1,7 +1,16 @@
+// Archivo: lib/shared/widgets/app_bottom_nav.dart
+//
+// Barra de navegación inferior con cuatro pestañas y un botón central para
+// registrar un movimiento.
+//
+// El botón "+" ocupa el centro visual de la barra, pero no es una pestaña: abre
+// el formulario como una pantalla nueva.
+
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_colors.dart';
 
+/// Datos de una pestaña de la barra inferior.
 class _NavItem {
   const _NavItem({
     required this.label,
@@ -14,6 +23,7 @@ class _NavItem {
   final IconData activeIcon;
 }
 
+/// Pestañas en el mismo orden que las ramas del `StatefulShellRoute`.
 const _items = [
   _NavItem(
     label: 'Inicio',
@@ -37,6 +47,10 @@ const _items = [
   ),
 ];
 
+/// Barra inferior de la app.
+///
+/// Recibe el índice activo y dos callbacks: cambiar de pestaña y abrir el
+/// formulario de nuevo movimiento.
 class AppBottomNav extends StatelessWidget {
   const AppBottomNav({
     super.key,
@@ -55,6 +69,7 @@ class AppBottomNav extends StatelessWidget {
     final palette = context.palette;
     final scheme = theme.colorScheme;
 
+    /// Construye una pestaña normal (icono + texto).
     Widget destination(int index) {
       final item = _items[index];
       final selected = currentIndex == index;
@@ -107,6 +122,8 @@ class AppBottomNav extends StatelessWidget {
             children: [
               destination(0),
               destination(1),
+              // Botón central elevado. Se desplaza hacia arriba para que
+              // sobresalga del borde de la barra.
               Expanded(
                 child: Semantics(
                   button: true,

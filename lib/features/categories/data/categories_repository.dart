@@ -1,3 +1,8 @@
+// Archivo: lib/features/categories/data/categories_repository.dart
+//
+// Lectura de categorías desde Supabase. Las categorías son del usuario y
+// están protegidas por RLS.
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'category.dart';
@@ -18,6 +23,9 @@ class CategoriesRepository {
   final SupabaseClient _client;
 
   /// Categorías activas del usuario, en el orden en que se crearon.
+  ///
+  /// Al filtrar `is_archived = false` se ocultan las que el usuario ya no usa,
+  /// pero se conservan en la base para no romper movimientos antiguos.
   Future<List<Category>> list() async {
     try {
       final rows = await _client

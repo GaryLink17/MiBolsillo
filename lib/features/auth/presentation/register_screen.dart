@@ -1,3 +1,11 @@
+// Archivo: lib/features/auth/presentation/register_screen.dart
+//
+// Pantalla de creación de cuenta. Recoge nombre, correo, contraseña y su
+// confirmación; luego llama al repositorio de autenticación.
+//
+// Si el proyecto exige confirmar el correo, Supabase no devuelve sesión y se
+// muestra un aviso para que el usuario revise su bandeja.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -56,6 +64,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       );
       if (!mounted) return;
 
+      // Sin sesión = el proyecto pide confirmar el correo antes de entrar.
       if (session == null) {
         await showDialog<void>(
           context: context,
@@ -78,6 +87,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         return;
       }
 
+      // Con sesión automática se continúa con el saldo inicial.
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(

@@ -1,8 +1,21 @@
+// Archivo: lib/shared/widgets/common.dart
+//
+// Widgets pequeños y reutilizables que aparecen en varias pantallas:
+// avatares de categoría, iconos circulares, badges, selector de mes y selector
+// segmentado.
+//
+// Mantenerlos aquí evita duplicar estilos y garantiza que un cambio visual se
+// aplique en toda la app.
+
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_spacing.dart';
 
+/// Icono dentro de un cuadrado redondeado con el color de un tono de categoría.
+///
+/// Se usa en las filas de movimientos y en las tarjetas de categoría. El radio
+/// del cuadrado crece proporcionalmente al tamaño.
 class CategoryAvatar extends StatelessWidget {
   const CategoryAvatar({
     super.key,
@@ -32,6 +45,8 @@ class CategoryAvatar extends StatelessWidget {
   }
 }
 
+/// Icono dentro de un círculo. Los colores se pueden personalizar; por defecto
+/// usa el fondo alterno de la paleta.
 class CircleIcon extends StatelessWidget {
   const CircleIcon({
     super.key,
@@ -66,6 +81,9 @@ class CircleIcon extends StatelessWidget {
   }
 }
 
+/// Botón circular con un icono y un tooltip opcional.
+///
+/// Se usa para acciones secundarias como volver, abrir Ajustes o cerrar.
 class CircleIconButton extends StatelessWidget {
   const CircleIconButton({
     super.key,
@@ -100,11 +118,14 @@ class CircleIconButton extends StatelessWidget {
         ),
       ),
     );
+    // El tooltip se añade solo si existe para no envolver el botón sin motivo.
     if (tooltip == null) return button;
     return Tooltip(message: tooltip!, child: button);
   }
 }
 
+/// Etiqueta pequeña tipo píldora. Sirve para contadores, estados y avisos
+/// como "Pronto".
 class AppBadge extends StatelessWidget {
   const AppBadge({
     super.key,
@@ -135,6 +156,10 @@ class AppBadge extends StatelessWidget {
   }
 }
 
+/// Selector de mes con forma de píldora.
+///
+/// Hoy muestra el mes actual; el `onTap` está preparado para abrir el
+/// calendario en una entrega posterior.
 class MonthSelector extends StatelessWidget {
   const MonthSelector({super.key, required this.label, this.onTap});
 
@@ -170,6 +195,7 @@ class MonthSelector extends StatelessWidget {
   }
 }
 
+/// Opción de un [SegmentedSelector].
 class SegmentedOption<T> {
   const SegmentedOption({required this.value, required this.label});
 
@@ -177,6 +203,10 @@ class SegmentedOption<T> {
   final String label;
 }
 
+/// Selector segmentado genérico (Gasto/Ingreso, Claro/Oscuro/Sistema, etc.).
+///
+/// La opción activa se resalta con animación y sombra en tema claro. Es
+/// genérico para que el tipo de valor lo decida quien lo usa.
 class SegmentedSelector<T> extends StatelessWidget {
   const SegmentedSelector({
     super.key,
