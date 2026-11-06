@@ -1,20 +1,23 @@
 // Archivo: lib/features/categories/data/categories_repository.dart
 //
 // Lectura de categorías desde Supabase. Las categorías son del usuario y
-// están protegidas por RLS.
+// están protegidas por RLS. Los fallos se devuelven como [CategoriesError].
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'category.dart';
 
-/// Error de categorías con un mensaje listo para mostrar al usuario.
-class CategoriesFailure implements Exception {
-  const CategoriesFailure(this.message);
+/// Motivos por los que una operación con categorías puede fallar.
+enum CategoriesError { load }
 
-  final String message;
+/// Error de categorías con el motivo tipado.
+class CategoriesFailure implements Exception {
+  const CategoriesFailure(this.error);
+
+  final CategoriesError error;
 
   @override
-  String toString() => message;
+  String toString() => 'CategoriesFailure(${error.name})';
 }
 
 class CategoriesRepository {
@@ -36,13 +39,9 @@ class CategoriesRepository {
 
       return rows.map(Category.fromMap).toList(growable: false);
     } on PostgrestException {
-      throw const CategoriesFailure(
-        'No pudimos cargar tus categorías. Revisa tu conexión.',
-      );
+      throw const CategoriesFailure(CategoriesError.load);
     } catch (_) {
-      throw const CategoriesFailure(
-        'No pudimos cargar tus categorías. Revisa tu conexión.',
-      );
+      throw const CategoriesFailure(CategoriesError.load);
     }
   }
 }

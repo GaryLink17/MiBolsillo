@@ -6,8 +6,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_colors.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../shared/widgets/movement_tile.dart';
+import '../../categories/presentation/category_labels.dart';
 import '../data/movement.dart';
+import 'movement_labels.dart';
 
 /// Fila de un movimiento lista para las pantallas de Inicio y Movimientos.
 ///
@@ -24,11 +27,13 @@ class MovementRow extends StatelessWidget {
     final category = movement.category;
     final note = movement.note;
     final title =
-        category?.name ??
-        (note != null && note.isNotEmpty ? note : movement.type.label);
+        category?.displayName(context.l10n) ??
+        (note != null && note.isNotEmpty
+            ? note
+            : movement.type.label(context.l10n));
     final subtitle = [
       if (note != null && note.isNotEmpty && note != title) note,
-      movement.accountName,
+      movement.accountName ?? context.l10n.accountFallback,
     ].join(' · ');
 
     return MovementTile(

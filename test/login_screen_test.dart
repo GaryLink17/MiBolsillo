@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mibolsillo/app/theme/app_theme.dart';
 import 'package:mibolsillo/features/auth/application/auth_providers.dart';
 import 'package:mibolsillo/features/auth/presentation/login_screen.dart';
+import 'package:mibolsillo/l10n/generated/app_localizations.dart';
 
 /// Construye la pantalla con la nube desactivada.
 Widget _buildLogin() {
@@ -16,6 +17,9 @@ Widget _buildLogin() {
     overrides: [authRepositoryProvider.overrideWithValue(null)],
     child: MaterialApp(
       theme: buildAppTheme(Brightness.light),
+      locale: const Locale('es'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: const LoginScreen(),
     ),
   );

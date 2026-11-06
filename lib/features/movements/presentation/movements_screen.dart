@@ -17,6 +17,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_page_metrics.dart';
 import '../../../app/theme/app_spacing.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/app_page.dart';
 import '../../../shared/widgets/common.dart';
@@ -25,12 +26,14 @@ import '../application/movements_providers.dart';
 import '../data/movement.dart';
 import '../data/movements_repository.dart';
 import 'movement_row.dart';
+import 'movements_error_messages.dart';
 
 class MovementsScreen extends ConsumerWidget {
   const MovementsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final movementsAsync = ref.watch(movementsProvider);
     // Mientras carga o falla se usa una lista vacía para no repetir null checks.
@@ -48,7 +51,7 @@ class MovementsScreen extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Movimientos',
+                    l10n.movementsTitle,
                     style: theme.textTheme.headlineLarge,
                   ),
                 ),
@@ -69,8 +72,10 @@ class MovementsScreen extends ConsumerWidget {
             else if (movementsAsync.hasError && movements.isEmpty)
               _ErrorCard(
                 message: movementsAsync.error is MovementsFailure
-                    ? (movementsAsync.error as MovementsFailure).message
-                    : 'No pudimos cargar tus movimientos. Revisa tu conexión.',
+                    ? (movementsAsync.error as MovementsFailure).error.message(
+                        l10n,
+                      )
+                    : l10n.movementsLoadError,
                 onRetry: () => ref.invalidate(movementsProvider),
               )
             // Lista vacía.
@@ -79,11 +84,9 @@ class MovementsScreen extends ConsumerWidget {
                 height: 380,
                 child: EmptyState(
                   icon: Icons.receipt_long_outlined,
-                  title: 'Sin movimientos todavía',
-                  message:
-                      'Registra tu primer gasto o ingreso para empezar a '
-                      'ver cómo se mueve tu dinero.',
-                  actionLabel: 'Registrar el primero',
+                  title: l10n.movementsEmptyTitle,
+                  message: l10n.movementsEmptyMessage,
+                  actionLabel: l10n.movementsRegisterFirst,
                   onAction: () => context.push('/nuevo-movimiento'),
                 ),
               )
@@ -161,8 +164,8 @@ class MovementsScreen extends ConsumerWidget {
     final todayDate = DateTime(today.year, today.month, today.day);
     final difference = todayDate.difference(day).inDays;
 
-    if (difference == 0) return 'Hoy';
-    if (difference == 1) return 'Ayer';
+    if (difference == 0) return context.l10n.today;
+    if (difference == 1) return context.l10n.yesterday;
     return MaterialLocalizations.of(context).formatMediumDate(day);
   }
 }
@@ -193,7 +196,7 @@ class _ErrorCard extends StatelessWidget {
             style: theme.textTheme.bodyMedium?.copyWith(color: palette.muted),
           ),
           const SizedBox(height: AppSpacing.xxs),
-          TextButton(onPressed: onRetry, child: const Text('Reintentar')),
+          TextButton(onPressed: onRetry, child: Text(context.l10n.retry)),
         ],
       ),
     );

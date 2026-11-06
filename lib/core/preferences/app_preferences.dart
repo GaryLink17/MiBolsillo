@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 abstract final class PreferenceKeys {
   static const onboardingCompleted = 'onboarding_completed';
   static const themeMode = 'theme_mode';
+  static const language = 'language';
 }
 
 /// Instancia de `SharedPreferences` cargada en `main()`.
@@ -55,6 +56,54 @@ class ThemeModeController extends Notifier<ThemeMode> {
 final themeModeProvider = NotifierProvider<ThemeModeController, ThemeMode>(
   ThemeModeController.new,
 );
+
+/// Idiomas que puede elegir el usuario.
+///
+/// `system` significa "usar el idioma del teléfono". Los otros dos fuerzan
+/// español o inglés sin importar la configuración del dispositivo.
+enum AppLanguage { system, spanish, english }
+
+/// Controla el idioma de la app y lo persiste en el dispositivo.
+///
+/// El idioma por defecto es español para conservar el comportamiento actual.
+/// Si no hay valor guardado, o el valor no se reconoce, se usa español.
+class LanguageController extends Notifier<AppLanguage> {
+  @override
+  AppLanguage build() {
+    final stored = ref
+        .watch(sharedPreferencesProvider)
+        .getString(PreferenceKeys.language);
+
+    return AppLanguage.values.firstWhere(
+      (language) => language.name == stored,
+      orElse: () => AppLanguage.spanish,
+    );
+  }
+
+  /// Cambia el idioma y lo guarda para el próximo arranque.
+  Future<void> set(AppLanguage language) async {
+    if (state == language) return;
+    state = language;
+    await ref
+        .read(sharedPreferencesProvider)
+        .setString(PreferenceKeys.language, language.name);
+  }
+}
+
+final languageProvider = NotifierProvider<LanguageController, AppLanguage>(
+  LanguageController.new,
+);
+
+/// Convierte la preferencia de idioma en el `Locale` que entiende Flutter.
+///
+/// `null` le dice a `MaterialApp` que use el idioma del sistema.
+Locale? localeFor(AppLanguage language) {
+  return switch (language) {
+    AppLanguage.system => null,
+    AppLanguage.spanish => const Locale('es'),
+    AppLanguage.english => const Locale('en'),
+  };
+}
 
 /// Recuerda si el usuario ya completó el tutorial de bienvenida.
 class OnboardingController extends Notifier<bool> {

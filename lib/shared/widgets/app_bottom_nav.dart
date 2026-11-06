@@ -9,6 +9,8 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_colors.dart';
+import '../../core/l10n/l10n.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 /// Datos de una pestaña de la barra inferior.
 class _NavItem {
@@ -24,24 +26,26 @@ class _NavItem {
 }
 
 /// Pestañas en el mismo orden que las ramas del `StatefulShellRoute`.
-const _items = [
+///
+/// Es una función porque las etiquetas dependen del idioma activo.
+List<_NavItem> _items(AppLocalizations l10n) => [
   _NavItem(
-    label: 'Inicio',
+    label: l10n.navHome,
     icon: Icons.home_outlined,
     activeIcon: Icons.home_rounded,
   ),
   _NavItem(
-    label: 'Movimientos',
+    label: l10n.navMovements,
     icon: Icons.format_list_bulleted_rounded,
     activeIcon: Icons.format_list_bulleted_rounded,
   ),
   _NavItem(
-    label: 'Cuentas',
+    label: l10n.navAccounts,
     icon: Icons.account_balance_wallet_outlined,
     activeIcon: Icons.account_balance_wallet_rounded,
   ),
   _NavItem(
-    label: 'Categorías',
+    label: l10n.navCategories,
     icon: Icons.pie_chart_outline_rounded,
     activeIcon: Icons.pie_chart_rounded,
   ),
@@ -65,13 +69,15 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final items = _items(l10n);
     final theme = Theme.of(context);
     final palette = context.palette;
     final scheme = theme.colorScheme;
 
     /// Construye una pestaña normal (icono + texto).
     Widget destination(int index) {
-      final item = _items[index];
+      final item = items[index];
       final selected = currentIndex == index;
       final color = selected ? scheme.primary : palette.muted;
       return Expanded(
@@ -127,7 +133,7 @@ class AppBottomNav extends StatelessWidget {
               Expanded(
                 child: Semantics(
                   button: true,
-                  label: 'Nuevo movimiento',
+                  label: l10n.navNewMovement,
                   child: Transform.translate(
                     offset: const Offset(0, -16),
                     child: Center(

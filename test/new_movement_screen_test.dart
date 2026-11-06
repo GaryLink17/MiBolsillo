@@ -14,6 +14,7 @@ import 'package:mibolsillo/features/auth/application/auth_providers.dart';
 import 'package:mibolsillo/features/categories/application/categories_providers.dart';
 import 'package:mibolsillo/features/categories/data/category.dart';
 import 'package:mibolsillo/features/movements/presentation/new_movement_screen.dart';
+import 'package:mibolsillo/l10n/generated/app_localizations.dart';
 
 /// Cuenta de prueba con saldo conocido.
 const _accounts = [
@@ -56,6 +57,9 @@ Widget _buildScreen({
     ],
     child: MaterialApp(
       theme: buildAppTheme(Brightness.light),
+      locale: const Locale('es'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: const NewMovementScreen(),
     ),
   );

@@ -16,6 +16,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_page_metrics.dart';
 import '../../../app/theme/app_spacing.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/app_page.dart';
 import '../../../shared/widgets/common.dart';
@@ -23,36 +24,25 @@ import '../../../shared/widgets/money_text.dart';
 import '../../accounts/application/accounts_providers.dart';
 import '../../accounts/data/account.dart';
 import '../../accounts/data/accounts_repository.dart';
+import '../../accounts/presentation/accounts_error_messages.dart';
 import '../../movements/application/movements_providers.dart';
 import '../../movements/data/movement.dart';
 import '../../movements/data/movements_repository.dart';
 import '../../movements/presentation/movement_row.dart';
-
-/// Nombres de los meses en español. Se usan en el selector de mes del inicio.
-const _monthNames = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-];
+import '../../movements/presentation/movements_error_messages.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final palette = context.palette;
     final now = DateTime.now();
-    final monthLabel = '${_monthNames[now.month - 1]} ${now.year}';
+    // `MaterialLocalizations` usa el idioma activo: "noviembre de 2026" en
+    // español y "November 2026" en inglés.
+    final monthLabel = MaterialLocalizations.of(context).formatMonthYear(now);
 
     // Cuentas y balance total. Mientras carga se usa una lista vacía.
     final accountsAsync = ref.watch(accountsProvider);
@@ -85,12 +75,12 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 MonthSelector(
                   label: monthLabel,
-                  onTap: () => _comingSoon(context, 'El selector de mes'),
+                  onTap: () => _comingSoon(context, l10n.homeMonthSelector),
                 ),
                 const Spacer(),
                 CircleIconButton(
                   icon: Icons.person_outline_rounded,
-                  tooltip: 'Ajustes',
+                  tooltip: l10n.settingsTooltip,
                   onTap: () => context.push('/ajustes'),
                 ),
               ],
@@ -99,7 +89,7 @@ class HomeScreen extends ConsumerWidget {
 
             // Balance total.
             Text(
-              'Balance total',
+              l10n.homeBalanceTotal,
               style: theme.textTheme.bodyLarge?.copyWith(color: palette.muted),
             ),
             const SizedBox(height: AppSpacing.xxs),
@@ -115,7 +105,7 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 Expanded(
                   child: _SummaryCard(
-                    label: 'Ingresos',
+                    label: l10n.homeIncome,
                     amount: totals.income,
                     icon: Icons.arrow_downward_rounded,
                     highlighted: true,
@@ -124,7 +114,7 @@ class HomeScreen extends ConsumerWidget {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: _SummaryCard(
-                    label: 'Gastos',
+                    label: l10n.homeExpenses,
                     amount: totals.expenses,
                     icon: Icons.arrow_upward_rounded,
                   ),
@@ -135,32 +125,32 @@ class HomeScreen extends ConsumerWidget {
             if (totalsAsync.hasError) ...[
               const SizedBox(height: AppSpacing.xs),
               _InlineRetry(
-                message: 'No pudimos cargar los totales del mes.',
+                message: l10n.homeTotalsError,
                 onRetry: () => ref.invalidate(monthlyTotalsProvider),
               ),
             ],
             const SizedBox(height: AppSpacing.xxl),
 
             // Sección de cuentas.
-            const SectionHeader(title: 'Mis cuentas'),
+            SectionHeader(title: l10n.homeMyAccounts),
             const SizedBox(height: AppSpacing.xs),
             if (accountsAsync.isLoading && accounts.isEmpty)
               const _LoadingSection()
             else if (accountsAsync.hasError && accounts.isEmpty)
               _ErrorSection(
                 message: accountsAsync.error is AccountsFailure
-                    ? (accountsAsync.error as AccountsFailure).message
-                    : 'No pudimos cargar tus cuentas. Revisa tu conexión.',
+                    ? (accountsAsync.error as AccountsFailure).error.message(
+                        l10n,
+                      )
+                    : l10n.accountsLoadError,
                 onRetry: () => ref.invalidate(accountsProvider),
               )
             else if (accounts.isEmpty)
               _EmptySection(
                 icon: Icons.account_balance_wallet_outlined,
-                title: 'Aún no tienes cuentas',
-                message:
-                    'Configura tu saldo inicial para ver cuánto dinero '
-                    'tienes hoy en cada cuenta.',
-                actionLabel: 'Configurar saldo inicial',
+                title: l10n.homeNoAccountsTitle,
+                message: l10n.homeNoAccountsMessage,
+                actionLabel: l10n.homeConfigureInitialBalance,
                 onAction: () => context.push('/saldo-inicial'),
               )
             else
@@ -172,8 +162,8 @@ class HomeScreen extends ConsumerWidget {
 
             // Sección de movimientos recientes.
             SectionHeader(
-              title: 'Movimientos recientes',
-              actionLabel: recentMovements.isEmpty ? null : 'Ver todos',
+              title: l10n.homeRecentMovements,
+              actionLabel: recentMovements.isEmpty ? null : l10n.homeSeeAll,
               onAction: recentMovements.isEmpty
                   ? null
                   : () => context.go('/movimientos'),
@@ -184,20 +174,20 @@ class HomeScreen extends ConsumerWidget {
             else if (movementsAsync.hasError && recentMovements.isEmpty)
               _ErrorSection(
                 message: movementsAsync.error is MovementsFailure
-                    ? (movementsAsync.error as MovementsFailure).message
-                    : 'No pudimos cargar tus movimientos. Revisa tu conexión.',
+                    ? (movementsAsync.error as MovementsFailure).error.message(
+                        l10n,
+                      )
+                    : l10n.movementsLoadError,
                 onRetry: () {
                   ref.invalidate(movementsProvider);
                   ref.invalidate(monthlyTotalsProvider);
                 },
               )
             else if (recentMovements.isEmpty)
-              const _EmptySection(
+              _EmptySection(
                 icon: Icons.receipt_long_outlined,
-                title: 'Sin movimientos todavía',
-                message:
-                    'Cuando registres un gasto o un ingreso, '
-                    'aparecerá aquí.',
+                title: l10n.homeNoMovementsTitle,
+                message: l10n.homeNoMovementsMessage,
               )
             else
               AppCard(
@@ -242,7 +232,7 @@ class HomeScreen extends ConsumerWidget {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text('$feature llega en el próximo paso.')),
+        SnackBar(content: Text(context.l10n.homeComingSoon(feature))),
       );
   }
 }
@@ -336,7 +326,7 @@ class _ErrorSection extends StatelessWidget {
             style: theme.textTheme.bodyMedium?.copyWith(color: palette.muted),
           ),
           const SizedBox(height: AppSpacing.xxs),
-          TextButton(onPressed: onRetry, child: const Text('Reintentar')),
+          TextButton(onPressed: onRetry, child: Text(context.l10n.retry)),
         ],
       ),
     );
@@ -364,7 +354,7 @@ class _InlineRetry extends StatelessWidget {
             style: theme.textTheme.bodySmall?.copyWith(color: palette.muted),
           ),
         ),
-        TextButton(onPressed: onRetry, child: const Text('Reintentar')),
+        TextButton(onPressed: onRetry, child: Text(context.l10n.retry)),
       ],
     );
   }

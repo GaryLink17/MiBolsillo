@@ -9,18 +9,14 @@ import '../../categories/data/category.dart';
 
 /// Tipos que se pueden registrar en esta entrega. `ahorro` llega con las metas.
 ///
-/// Cada tipo conoce:
-/// - `label`: texto singular para el usuario.
-/// - `saveLabel`: texto del botón de guardado.
-/// - `categoryKind`: qué categorías se ofrecen en el formulario.
+/// Cada tipo conoce qué categorías se ofrecen en el formulario. Los textos
+/// visibles se resuelven en la capa de presentación con `MovementTypeLabel`.
 enum MovementType {
-  gasto('Gasto', 'Guardar gasto', CategoryKind.gasto),
-  ingreso('Ingreso', 'Guardar ingreso', CategoryKind.ingreso);
+  gasto(CategoryKind.gasto),
+  ingreso(CategoryKind.ingreso);
 
-  const MovementType(this.label, this.saveLabel, this.categoryKind);
+  const MovementType(this.categoryKind);
 
-  final String label;
-  final String saveLabel;
   final CategoryKind categoryKind;
 
   /// Convierte el valor almacenado en la base a un [MovementType].
@@ -61,7 +57,7 @@ class MovementEntry {
     required this.type,
     required this.amount,
     required this.occurredOn,
-    required this.accountName,
+    this.accountName,
     this.note,
     this.category,
   });
@@ -70,7 +66,9 @@ class MovementEntry {
   final MovementType type;
   final double amount;
   final DateTime occurredOn;
-  final String accountName;
+
+  /// Nombre de la cuenta asociada; `null` si la relación no vino en la fila.
+  final String? accountName;
   final String? note;
   final Category? category;
 
@@ -96,8 +94,8 @@ class MovementEntry {
       amount: (map['amount'] as num).toDouble(),
       occurredOn: _dateOnly(DateTime.parse(map['occurred_on'] as String)),
       accountName: account is Map<String, dynamic>
-          ? account['name'] as String? ?? 'Cuenta'
-          : 'Cuenta',
+          ? account['name'] as String?
+          : null,
       note: (note == null || note.isEmpty) ? null : note,
       category: category is Map<String, dynamic>
           ? Category.fromMap(category)

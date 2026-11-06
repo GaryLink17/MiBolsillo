@@ -14,20 +14,25 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_page_metrics.dart';
 import '../../../app/theme/app_spacing.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../core/preferences/app_preferences.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/common.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../auth/data/auth_repository.dart';
+import '../../auth/presentation/auth_error_messages.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final palette = context.palette;
     final themeMode = ref.watch(themeModeProvider);
+    final language = ref.watch(languageProvider);
     final session = ref.watch(sessionProvider);
 
     // El nombre se guarda en `user_metadata` durante el registro.
@@ -35,7 +40,7 @@ class SettingsScreen extends ConsumerWidget {
     final hasSession = session != null;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajustes')),
+      appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: SafeArea(
         top: false,
         child: Align(
@@ -70,8 +75,8 @@ class SettingsScreen extends ConsumerWidget {
                               hasSession
                                   ? (fullName?.isNotEmpty == true
                                         ? fullName!
-                                        : 'Tu cuenta')
-                                  : 'Tu perfil',
+                                        : l10n.settingsAccount)
+                                  : l10n.settingsProfile,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.titleMedium,
@@ -79,8 +84,8 @@ class SettingsScreen extends ConsumerWidget {
                             const SizedBox(height: 2),
                             Text(
                               hasSession
-                                  ? session.user.email ?? 'Sesión activa'
-                                  : 'Inicia sesión para sincronizar',
+                                  ? session.user.email ?? l10n.settingsActiveSession
+                                  : l10n.settingsSignInToSync,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodySmall?.copyWith(
@@ -104,7 +109,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
 
                 // Preferencias generales.
-                _sectionLabel(context, 'General'),
+                _sectionLabel(context, l10n.settingsGeneral),
                 AppCard(
                   padding: EdgeInsets.zero,
                   child: Column(
@@ -122,7 +127,7 @@ class SettingsScreen extends ConsumerWidget {
                                 ),
                                 const SizedBox(width: AppSpacing.sm + 2),
                                 Text(
-                                  'Apariencia',
+                                  l10n.settingsAppearance,
                                   style: theme.textTheme.titleMedium,
                                 ),
                               ],
@@ -135,18 +140,18 @@ class SettingsScreen extends ConsumerWidget {
                               onChanged: (mode) => ref
                                   .read(themeModeProvider.notifier)
                                   .set(mode),
-                              options: const [
+                              options: [
                                 SegmentedOption(
                                   value: ThemeMode.light,
-                                  label: 'Claro',
+                                  label: l10n.themeLight,
                                 ),
                                 SegmentedOption(
                                   value: ThemeMode.dark,
-                                  label: 'Oscuro',
+                                  label: l10n.themeDark,
                                 ),
                                 SegmentedOption(
                                   value: ThemeMode.system,
-                                  label: 'Sistema',
+                                  label: l10n.themeSystem,
                                 ),
                               ],
                             ),
@@ -155,10 +160,23 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       const Divider(),
                       _SettingsTile(
-                        icon: Icons.payments_outlined,
-                        title: 'Moneda',
+                        icon: Icons.language_rounded,
+                        title: l10n.settingsLanguage,
                         trailing: Text(
-                          'RD\$ · Peso dominicano',
+                          _languageLabel(l10n, language),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontSize: 13,
+                            color: palette.muted,
+                          ),
+                        ),
+                        onTap: () => _showLanguagePicker(context, ref),
+                      ),
+                      const Divider(),
+                      _SettingsTile(
+                        icon: Icons.payments_outlined,
+                        title: l10n.settingsCurrency,
+                        trailing: Text(
+                          l10n.settingsCurrencyValue,
                           style: theme.textTheme.bodySmall?.copyWith(
                             fontSize: 13,
                             color: palette.muted,
@@ -166,68 +184,68 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                         onTap: () => _snack(
                           context,
-                          'Por ahora trabajamos solo con pesos dominicanos.',
+                          l10n.settingsCurrencyMessage,
                         ),
                       ),
                       const Divider(),
                       _SettingsTile(
                         icon: Icons.grid_view_rounded,
-                        title: 'Administrar categorías',
+                        title: l10n.settingsManageCategories,
                         onTap: () => context.go('/categorias'),
                       ),
                       const Divider(),
                       _SettingsTile(
                         icon: Icons.notifications_none_rounded,
-                        title: 'Recordatorios diarios',
-                        trailing: const AppBadge(label: 'Pronto'),
+                        title: l10n.settingsDailyReminders,
+                        trailing: AppBadge(label: l10n.soon),
                       ),
                     ],
                   ),
                 ),
 
                 // Seguridad y datos: pendientes por ahora.
-                _sectionLabel(context, 'Seguridad y datos'),
+                _sectionLabel(context, l10n.settingsSecurityData),
                 AppCard(
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: [
                       _SettingsTile(
                         icon: Icons.lock_outline_rounded,
-                        title: 'Bloqueo con huella o rostro',
-                        trailing: const AppBadge(label: 'Pronto'),
+                        title: l10n.settingsBiometric,
+                        trailing: AppBadge(label: l10n.soon),
                       ),
                       const Divider(),
                       _SettingsTile(
                         icon: Icons.key_rounded,
-                        title: 'Cambiar contraseña',
-                        trailing: const AppBadge(label: 'Pronto'),
+                        title: l10n.settingsChangePassword,
+                        trailing: AppBadge(label: l10n.soon),
                       ),
                       const Divider(),
                       _SettingsTile(
                         icon: Icons.download_outlined,
-                        title: 'Exportar mis datos',
-                        trailing: const AppBadge(label: 'Pronto'),
+                        title: l10n.settingsExportData,
+                        trailing: AppBadge(label: l10n.soon),
                       ),
                     ],
                   ),
                 ),
 
                 // Ayuda.
-                _sectionLabel(context, 'Ayuda'),
+                _sectionLabel(context, l10n.settingsHelp),
                 AppCard(
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: [
                       _SettingsTile(
                         icon: Icons.school_outlined,
-                        title: 'Ver tutorial de nuevo',
+                        title: l10n.settingsReplayTutorial,
                         // `extra: true` activa el modo replay del tutorial.
                         onTap: () => context.push('/onboarding', extra: true),
                       ),
                       const Divider(),
                       _SettingsTile(
                         icon: Icons.info_outline_rounded,
-                        title: 'Acerca de Mi Bolsillo',
+                        title: l10n.settingsAbout,
                         onTap: () => _showAbout(context),
                       ),
                     ],
@@ -240,7 +258,7 @@ class SettingsScreen extends ConsumerWidget {
                   OutlinedButton.icon(
                     onPressed: () => _signOut(context, ref),
                     icon: const Icon(Icons.logout_rounded, size: 20),
-                    label: const Text('Cerrar sesión'),
+                    label: Text(l10n.settingsSignOut),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: theme.colorScheme.error,
                     ),
@@ -249,11 +267,11 @@ class SettingsScreen extends ConsumerWidget {
                   FilledButton.icon(
                     onPressed: () => context.push('/entrar'),
                     icon: const Icon(Icons.login_rounded, size: 20),
-                    label: const Text('Iniciar sesión'),
+                    label: Text(l10n.settingsSignIn),
                   ),
                 const SizedBox(height: AppSpacing.xl),
                 Text(
-                  'Mi Bolsillo · versión 1.0.0',
+                  l10n.settingsVersion,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: palette.muted,
@@ -289,10 +307,64 @@ class SettingsScreen extends ConsumerWidget {
     try {
       await repository.signOut();
       if (!context.mounted) return;
-      _snack(context, 'Sesión cerrada. Tus datos siguen en tu cuenta.');
+      _snack(context, context.l10n.signOutSuccess);
     } on AuthFailure catch (failure) {
       if (!context.mounted) return;
-      _snack(context, failure.message);
+      _snack(context, failure.error.message(context.l10n));
+    }
+  }
+
+  /// Etiqueta del idioma activo en el selector de Ajustes.
+  String _languageLabel(AppLocalizations l10n, AppLanguage language) {
+    return switch (language) {
+      AppLanguage.system => l10n.languageSystem,
+      AppLanguage.spanish => l10n.languageSpanish,
+      AppLanguage.english => l10n.languageEnglish,
+    };
+  }
+
+  /// Abre un diálogo para elegir entre español, inglés o idioma del sistema.
+  Future<void> _showLanguagePicker(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    final current = ref.read(languageProvider);
+
+    final selected = await showDialog<AppLanguage>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.settingsLanguage),
+        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+        content: RadioGroup<AppLanguage>(
+          groupValue: current,
+          onChanged: (value) => Navigator.of(dialogContext).pop(value),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<AppLanguage>(
+                value: AppLanguage.spanish,
+                title: Text(l10n.languageSpanish),
+              ),
+              RadioListTile<AppLanguage>(
+                value: AppLanguage.english,
+                title: Text(l10n.languageEnglish),
+              ),
+              RadioListTile<AppLanguage>(
+                value: AppLanguage.system,
+                title: Text(l10n.languageSystem),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.close),
+          ),
+        ],
+      ),
+    );
+
+    if (selected != null) {
+      await ref.read(languageProvider.notifier).set(selected);
     }
   }
 
@@ -305,19 +377,16 @@ class SettingsScreen extends ConsumerWidget {
 
   /// Diálogo con la versión y una breve descripción de la app.
   void _showAbout(BuildContext context) {
+    final l10n = context.l10n;
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Mi Bolsillo'),
-        content: const Text(
-          'Versión 1.0.0\n\n'
-          'Tus finanzas, claras y en orden. Hecho para acompañarte '
-          'en cada gasto, ingreso y ahorro.',
-        ),
+        title: Text(l10n.appTitle),
+        content: Text(l10n.aboutContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cerrar'),
+            child: Text(l10n.close),
           ),
         ],
       ),
@@ -349,7 +418,7 @@ class _SettingsTile extends StatelessWidget {
         trailing ??
         (onTap != null
             ? Icon(Icons.chevron_right_rounded, color: palette.muted)
-            : const AppBadge(label: 'Pronto'));
+            : AppBadge(label: context.l10n.soon));
 
     return InkWell(
       onTap: onTap,

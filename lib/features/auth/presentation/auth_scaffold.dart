@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Marco común de las pantallas de acceso: logo, título y formulario.
 ///
@@ -48,7 +49,7 @@ class AuthScaffold extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: Navigator.of(context).canPop()
                         ? IconButton(
-                            tooltip: 'Volver',
+                            tooltip: context.l10n.back,
                             onPressed: () => Navigator.of(context).maybePop(),
                             icon: const Icon(Icons.arrow_back_rounded),
                           )

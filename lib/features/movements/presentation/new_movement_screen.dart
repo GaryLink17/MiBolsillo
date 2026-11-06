@@ -20,16 +20,24 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_page_metrics.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../core/formatting/money_format.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/app_page.dart';
 import '../../../shared/widgets/common.dart';
 import '../../accounts/application/accounts_providers.dart';
 import '../../accounts/data/account.dart';
+import '../../accounts/data/accounts_repository.dart';
+import '../../accounts/presentation/accounts_error_messages.dart';
 import '../../categories/application/categories_providers.dart';
+import '../../categories/data/categories_repository.dart';
 import '../../categories/data/category.dart';
+import '../../categories/presentation/categories_error_messages.dart';
+import '../../categories/presentation/category_labels.dart';
 import '../application/movements_providers.dart';
 import '../data/movement.dart';
 import '../data/movements_repository.dart';
+import 'movement_labels.dart';
+import 'movements_error_messages.dart';
 
 /// Registro de un gasto o un ingreso.
 ///
@@ -79,7 +87,7 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
       initialDate: _date,
       firstDate: DateTime(2000),
       lastDate: DateUtils.dateOnly(DateTime.now()),
-      helpText: 'Fecha del movimiento',
+      helpText: context.l10n.datePickerHelp,
     );
     if (picked == null || !mounted) return;
     setState(() => _date = DateUtils.dateOnly(picked));
@@ -87,6 +95,7 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
 
   /// Valida y guarda el movimiento.
   Future<void> _submit() async {
+    final l10n = context.l10n;
     // Se cierra el teclado para que el usuario vea el resultado.
     FocusScope.of(context).unfocus();
     setState(() => _error = null);
@@ -98,15 +107,15 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
     if (_accountId == null) {
       setState(
         () => _error = _type == MovementType.gasto
-            ? 'Elige la cuenta de donde sale el dinero.'
-            : 'Elige la cuenta donde entra el dinero.',
+            ? l10n.accountExpenseRequired
+            : l10n.accountIncomeRequired,
       );
       return;
     }
 
     final repository = ref.read(movementsRepositoryProvider);
     if (repository == null) {
-      setState(() => _error = 'La nube no está configurada en esta versión.');
+      setState(() => _error = l10n.cloudNotConfigured);
       return;
     }
 
@@ -117,7 +126,7 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
     // Se capturan antes del `await` para no usar el contexto después de un
     // posible desmontaje.
     final messenger = ScaffoldMessenger.of(context);
-    final successMessage = '${_type.label} registrado.';
+    final successMessage = _type.savedMessage(l10n);
 
     try {
       await repository.create(
@@ -141,7 +150,7 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
         ..showSnackBar(SnackBar(content: Text(successMessage)));
     } on MovementsFailure catch (failure) {
       if (!mounted) return;
-      setState(() => _error = failure.message);
+      setState(() => _error = failure.error.message(l10n));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -149,6 +158,7 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final palette = context.palette;
 
@@ -175,13 +185,13 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                   children: [
                     CircleIconButton(
                       icon: Icons.arrow_back_rounded,
-                      tooltip: 'Volver',
+                      tooltip: l10n.back,
                       onTap: _saving ? () {} : () => context.pop(),
                     ),
                     const SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
-                        'Nuevo movimiento',
+                        l10n.newMovementTitle,
                         style: theme.textTheme.titleLarge,
                       ),
                     ),
@@ -191,11 +201,14 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
 
                 // Selector Gasto / Ingreso.
                 SegmentedSelector<MovementType>(
-                  options: const [
-                    SegmentedOption(value: MovementType.gasto, label: 'Gasto'),
+                  options: [
+                    SegmentedOption(
+                      value: MovementType.gasto,
+                      label: MovementType.gasto.label(l10n),
+                    ),
                     SegmentedOption(
                       value: MovementType.ingreso,
-                      label: 'Ingreso',
+                      label: MovementType.ingreso.label(l10n),
                     ),
                   ],
                   value: _type,
@@ -216,19 +229,19 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                   ],
                   style: theme.textTheme.displaySmall?.copyWith(fontSize: 34),
-                  decoration: const InputDecoration(
-                    labelText: 'Monto',
-                    hintText: '0.00',
+                  decoration: InputDecoration(
+                    labelText: l10n.amountLabel,
+                    hintText: l10n.amountHint,
                     prefixText: 'RD\$ ',
                   ),
                   validator: (value) {
                     final text = value?.trim() ?? '';
-                    if (text.isEmpty) return 'Escribe el monto.';
+                    if (text.isEmpty) return l10n.amountRequired;
                     final amount = MoneyFormat.tryParse(text);
-                    if (amount == null) return 'Escribe un monto válido.';
-                    if (amount <= 0) return 'El monto debe ser mayor que cero.';
+                    if (amount == null) return l10n.amountInvalid;
+                    if (amount <= 0) return l10n.amountPositive;
                     if (amount > 999999999999.99) {
-                      return 'Ese monto es demasiado grande.';
+                      return l10n.amountTooLarge;
                     }
                     return null;
                   },
@@ -236,13 +249,17 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                 const SizedBox(height: AppSpacing.lg),
 
                 // Cuenta de origen/destino.
-                const _SectionLabel('¿De qué cuenta?'),
+                _SectionLabel(l10n.accountQuestion),
                 const SizedBox(height: AppSpacing.xs),
                 if (accountsAsync.isLoading && accounts.isEmpty)
                   const _InlineLoader()
                 else if (accountsAsync.hasError && accounts.isEmpty)
                   _InlineError(
-                    message: 'No pudimos cargar tus cuentas.',
+                    message: accountsAsync.error is AccountsFailure
+                        ? (accountsAsync.error as AccountsFailure).error.message(
+                            l10n,
+                          )
+                        : l10n.accountsLoadError,
                     onRetry: () => ref.invalidate(accountsProvider),
                   )
                 else if (accounts.isEmpty)
@@ -252,14 +269,13 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                     child: Column(
                       children: [
                         Text(
-                          'Primero configura tu saldo inicial',
+                          l10n.firstSetInitialBalance,
                           style: theme.textTheme.titleSmall,
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: AppSpacing.xxs),
                         Text(
-                          'Necesitas al menos una cuenta para registrar '
-                          'movimientos.',
+                          l10n.needAccountMessage,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: palette.muted,
                           ),
@@ -268,7 +284,7 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                         const SizedBox(height: AppSpacing.xs),
                         TextButton(
                           onPressed: () => context.push('/saldo-inicial'),
-                          child: const Text('Configurar saldo inicial'),
+                          child: Text(l10n.homeConfigureInitialBalance),
                         ),
                       ],
                     ),
@@ -302,13 +318,16 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
 
                 // Categoría opcional. El chip "Sin categoría" deja el campo en
                 // null.
-                const _SectionLabel('Categoría (opcional)'),
+                _SectionLabel(l10n.categoryOptional),
                 const SizedBox(height: AppSpacing.xs),
                 if (categoriesAsync.isLoading && categories.isEmpty)
                   const _InlineLoader()
                 else if (categoriesAsync.hasError && categories.isEmpty)
                   _InlineError(
-                    message: 'No pudimos cargar tus categorías.',
+                    message: categoriesAsync.error is CategoriesFailure
+                        ? (categoriesAsync.error as CategoriesFailure).error
+                              .message(l10n)
+                        : l10n.categoriesLoadError,
                     onRetry: () => ref.invalidate(categoriesProvider),
                   )
                 else
@@ -317,13 +336,13 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                     runSpacing: AppSpacing.xs,
                     children: [
                       _SelectChip(
-                        label: 'Sin categoría',
+                        label: l10n.noCategory,
                         selected: _categoryId == null,
                         onSelected: () => setState(() => _categoryId = null),
                       ),
                       for (final category in categories)
                         _SelectChip(
-                          label: category.name,
+                          label: category.displayName(l10n),
                           selected: _categoryId == category.id,
                           avatar: Icon(
                             category.icon,
@@ -358,7 +377,7 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Fecha',
+                              l10n.dateLabel,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: palette.muted,
                               ),
@@ -383,9 +402,9 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                   maxLines: 2,
                   textCapitalization: TextCapitalization.sentences,
                   inputFormatters: [LengthLimitingTextInputFormatter(200)],
-                  decoration: const InputDecoration(
-                    labelText: 'Nota (opcional)',
-                    hintText: 'Ej. almuerzo con el equipo',
+                  decoration: InputDecoration(
+                    labelText: l10n.noteLabel,
+                    hintText: l10n.noteHint,
                   ),
                 ),
 
@@ -404,7 +423,7 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : Text(_type.saveLabel),
+                      : Text(_type.saveLabel(l10n)),
                 ),
                 const SizedBox(height: AppSpacing.xxl),
               ],
@@ -510,7 +529,7 @@ class _InlineError extends StatelessWidget {
             style: theme.textTheme.bodyMedium?.copyWith(color: palette.muted),
           ),
         ),
-        TextButton(onPressed: onRetry, child: const Text('Reintentar')),
+        TextButton(onPressed: onRetry, child: Text(context.l10n.retry)),
       ],
     );
   }

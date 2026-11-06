@@ -12,8 +12,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
+import '../../../core/l10n/l10n.dart';
 import '../application/auth_providers.dart';
 import '../data/auth_repository.dart';
+import 'auth_error_messages.dart';
 import 'auth_scaffold.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -47,7 +49,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     final repository = ref.read(authRepositoryProvider);
     if (repository == null) {
-      setState(() => _error = 'La nube no está configurada en esta versión.');
+      setState(() => _error = context.l10n.cloudNotConfigured);
       return;
     }
 
@@ -66,18 +68,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
       // Sin sesión = el proyecto pide confirmar el correo antes de entrar.
       if (session == null) {
+        final l10n = context.l10n;
         await showDialog<void>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Revisa tu correo'),
-            content: const Text(
-              'Te enviamos un enlace para confirmar tu cuenta. '
-              'Ábrelo y luego entra desde la pantalla de acceso.',
-            ),
+            title: Text(l10n.confirmEmailTitle),
+            content: Text(l10n.confirmEmailMessage),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Entendido'),
+                child: Text(l10n.understood),
               ),
             ],
           ),
@@ -91,12 +91,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(content: Text('Tu cuenta está lista. ¡Bienvenido!')),
+          SnackBar(content: Text(context.l10n.accountReady)),
         );
       context.go('/saldo-inicial');
     } on AuthFailure catch (failure) {
       if (!mounted) return;
-      setState(() => _error = failure.message);
+      setState(() => _error = failure.error.message(context.l10n));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -104,23 +104,27 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final palette = context.palette;
 
     return AuthScaffold(
-      title: 'Crea tu cuenta',
-      subtitle: 'Tus datos quedan privados y sincronizados en tu cuenta.',
-      footer: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      title: l10n.registerTitle,
+      subtitle: l10n.registerSubtitle,
+      // `Wrap` permite que el texto y el botón pasen a otra línea si el
+      // idioma activo ocupa más espacio.
+      footer: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Text(
-            '¿Ya tienes cuenta?',
+            l10n.registerHaveAccount,
             style: Theme.of(context).textTheme.bodyMedium
                 ?.copyWith(color: palette.muted),
           ),
           TextButton(
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/entrar'),
-            child: const Text('Entrar'),
+            child: Text(l10n.registerLogin),
           ),
         ],
       ),
@@ -134,14 +138,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               textCapitalization: TextCapitalization.words,
               autofillHints: const [AutofillHints.name],
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'Tu nombre',
-                hintText: 'Cómo quieres que te llamemos',
-                prefixIcon: Icon(Icons.person_outline_rounded),
+              decoration: InputDecoration(
+                labelText: l10n.nameLabel,
+                hintText: l10n.nameHint,
+                prefixIcon: const Icon(Icons.person_outline_rounded),
               ),
               validator: (value) {
                 if ((value?.trim() ?? '').isEmpty) {
-                  return 'Escribe tu nombre.';
+                  return l10n.nameRequired;
                 }
                 return null;
               },
@@ -152,16 +156,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               keyboardType: TextInputType.emailAddress,
               autofillHints: const [AutofillHints.email],
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'Correo',
-                hintText: 'tu@correo.com',
-                prefixIcon: Icon(Icons.mail_outline_rounded),
+              decoration: InputDecoration(
+                labelText: l10n.emailLabel,
+                hintText: l10n.emailHint,
+                prefixIcon: const Icon(Icons.mail_outline_rounded),
               ),
               validator: (value) {
                 final text = value?.trim() ?? '';
-                if (text.isEmpty) return 'Escribe tu correo.';
+                if (text.isEmpty) return l10n.emailRequired;
                 if (!text.contains('@') || !text.contains('.')) {
-                  return 'Escribe un correo válido.';
+                  return l10n.emailInvalid;
                 }
                 return null;
               },
@@ -173,11 +177,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               autofillHints: const [AutofillHints.newPassword],
               textInputAction: TextInputAction.next,
               decoration: InputDecoration(
-                labelText: 'Contraseña',
-                helperText: 'Mínimo 6 caracteres',
+                labelText: l10n.passwordLabel,
+                helperText: l10n.passwordHelper,
                 prefixIcon: const Icon(Icons.lock_outline_rounded),
                 suffixIcon: IconButton(
-                  tooltip: _obscure ? 'Mostrar' : 'Ocultar',
+                  tooltip: _obscure
+                      ? l10n.showPassword
+                      : l10n.hidePassword,
                   onPressed: () => setState(() => _obscure = !_obscure),
                   icon: Icon(
                     _obscure
@@ -188,8 +194,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
               validator: (value) {
                 final text = value ?? '';
-                if (text.isEmpty) return 'Escribe una contraseña.';
-                if (text.length < 6) return 'Usa al menos 6 caracteres.';
+                if (text.isEmpty) return l10n.passwordCreateRequired;
+                if (text.length < 6) return l10n.passwordTooShort;
                 return null;
               },
             ),
@@ -200,13 +206,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               autofillHints: const [AutofillHints.newPassword],
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _submit(),
-              decoration: const InputDecoration(
-                labelText: 'Repite la contraseña',
-                prefixIcon: Icon(Icons.lock_reset_rounded),
+              decoration: InputDecoration(
+                labelText: l10n.confirmPasswordLabel,
+                prefixIcon: const Icon(Icons.lock_reset_rounded),
               ),
               validator: (value) {
                 if (value != _password.text) {
-                  return 'Las contraseñas no coinciden.';
+                  return l10n.passwordsDoNotMatch;
                 }
                 return null;
               },
@@ -217,14 +223,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ],
             const SizedBox(height: AppSpacing.xl),
             AuthSubmitButton(
-              label: 'Crear cuenta',
+              label: l10n.registerSubmit,
               loading: _loading,
               onPressed: _submit,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Al crear tu cuenta aceptas que tus datos financieros '
-              'se guarden de forma privada en tu espacio.',
+              l10n.registerTerms,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall
                   ?.copyWith(color: palette.muted),

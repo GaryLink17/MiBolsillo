@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/l10n/l10n.dart';
 import '../../core/preferences/app_preferences.dart';
 import '../../features/accounts/presentation/initial_balance_screen.dart';
 import '../../features/auth/application/auth_providers.dart';
@@ -170,7 +171,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     // Cualquier ruta inexistente muestra un mensaje en lugar de una pantalla
     // en blanco.
     errorBuilder: (context, state) => Scaffold(
-      body: Center(child: Text('No encontramos esa pantalla: ${state.uri}')),
+      body: Center(
+        child: Text(context.l10n.routeNotFound(state.uri.toString())),
+      ),
     ),
   );
 });

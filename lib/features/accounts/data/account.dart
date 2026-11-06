@@ -10,17 +10,13 @@ import 'package:flutter/material.dart';
 /// El nombre del enum coincide con el valor almacenado. Si la base trae un
 /// valor desconocido se usa `otro` para no romper la pantalla.
 enum AccountKind {
-  efectivo('Efectivo', Icons.payments_outlined),
-  banco('Banco', Icons.account_balance_outlined),
-  ahorro('Ahorros', Icons.savings_outlined),
-  tarjeta('Tarjeta', Icons.credit_card_rounded),
-  otro('Otra cuenta', Icons.account_balance_wallet_outlined);
+  efectivo(Icons.payments_outlined),
+  banco(Icons.account_balance_outlined),
+  ahorro(Icons.savings_outlined),
+  tarjeta(Icons.credit_card_rounded),
+  otro(Icons.account_balance_wallet_outlined);
 
-  const AccountKind(this.label, this.icon);
-
-  /// Texto que ve el usuario y que también se usa como nombre inicial de la
-  /// cuenta (Efectivo, Banco, Ahorros, Tarjeta).
-  final String label;
+  const AccountKind(this.icon);
 
   /// Icono asociado al tipo de cuenta.
   final IconData icon;

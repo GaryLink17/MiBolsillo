@@ -9,8 +9,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
+import '../../../core/l10n/l10n.dart';
 import '../application/auth_providers.dart';
 import '../data/auth_repository.dart';
+import 'auth_error_messages.dart';
 import 'auth_scaffold.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -41,7 +43,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final repository = ref.read(authRepositoryProvider);
     if (repository == null) {
-      setState(() => _error = 'La nube no está configurada en esta versión.');
+      setState(() => _error = context.l10n.cloudNotConfigured);
       return;
     }
 
@@ -62,7 +64,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     } on AuthFailure catch (failure) {
       if (!mounted) return;
-      setState(() => _error = failure.message);
+      setState(() => _error = failure.error.message(context.l10n));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -70,22 +72,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final palette = context.palette;
 
     return AuthScaffold(
-      title: 'Bienvenido de nuevo',
-      subtitle: 'Entra para tener tus cuentas y movimientos al día.',
-      footer: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      title: l10n.loginTitle,
+      subtitle: l10n.loginSubtitle,
+      // `Wrap` en lugar de `Row`: en inglés el texto es más largo y puede
+      // necesitar pasar a una segunda línea en pantallas estrechas.
+      footer: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Text(
-            '¿No tienes cuenta?',
+            l10n.loginNoAccount,
             style: Theme.of(context).textTheme.bodyMedium
                 ?.copyWith(color: palette.muted),
           ),
           TextButton(
             onPressed: () => context.push('/crear-cuenta'),
-            child: const Text('Crear una'),
+            child: Text(l10n.loginCreateOne),
           ),
         ],
       ),
@@ -99,17 +105,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               keyboardType: TextInputType.emailAddress,
               autofillHints: const [AutofillHints.email],
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'Correo',
-                hintText: 'tu@correo.com',
-                prefixIcon: Icon(Icons.mail_outline_rounded),
+              decoration: InputDecoration(
+                labelText: l10n.emailLabel,
+                hintText: l10n.emailHint,
+                prefixIcon: const Icon(Icons.mail_outline_rounded),
               ),
               validator: (value) {
                 final text = value?.trim() ?? '';
-                if (text.isEmpty) return 'Escribe tu correo.';
+                if (text.isEmpty) return l10n.emailRequired;
                 // Validación ligera: la comprobación real la hace Supabase.
                 if (!text.contains('@') || !text.contains('.')) {
-                  return 'Escribe un correo válido.';
+                  return l10n.emailInvalid;
                 }
                 return null;
               },
@@ -122,10 +128,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _submit(),
               decoration: InputDecoration(
-                labelText: 'Contraseña',
+                labelText: l10n.passwordLabel,
                 prefixIcon: const Icon(Icons.lock_outline_rounded),
                 suffixIcon: IconButton(
-                  tooltip: _obscure ? 'Mostrar' : 'Ocultar',
+                  tooltip: _obscure
+                      ? l10n.showPassword
+                      : l10n.hidePassword,
                   onPressed: () => setState(() => _obscure = !_obscure),
                   icon: Icon(
                     _obscure
@@ -135,7 +143,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               validator: (value) {
-                if ((value ?? '').isEmpty) return 'Escribe tu contraseña.';
+                if ((value ?? '').isEmpty) return l10n.passwordRequired;
                 return null;
               },
             ),
@@ -145,7 +153,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ],
             const SizedBox(height: AppSpacing.xl),
             AuthSubmitButton(
-              label: 'Entrar',
+              label: l10n.loginSubmit,
               loading: _loading,
               onPressed: _submit,
             ),

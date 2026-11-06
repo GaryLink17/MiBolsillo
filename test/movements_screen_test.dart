@@ -19,6 +19,7 @@ import 'package:mibolsillo/features/movements/data/movement.dart';
 import 'package:mibolsillo/features/movements/data/movements_repository.dart';
 import 'package:mibolsillo/features/movements/presentation/movement_row.dart';
 import 'package:mibolsillo/features/movements/presentation/movements_screen.dart';
+import 'package:mibolsillo/l10n/generated/app_localizations.dart';
 import 'package:mibolsillo/shared/widgets/money_text.dart';
 import 'package:mibolsillo/shared/widgets/movement_tile.dart';
 
@@ -60,15 +61,16 @@ Widget _buildMovements({
       supabaseClientProvider.overrideWithValue(null),
       movementsProvider.overrideWith((ref) async {
         if (fails) {
-          throw const MovementsFailure(
-            'No pudimos cargar tus movimientos. Revisa tu conexión.',
-          );
+          throw const MovementsFailure(MovementsError.load);
         }
         return movements;
       }),
     ],
     child: MaterialApp(
       theme: buildAppTheme(Brightness.light),
+      locale: const Locale('es'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: const MovementsScreen(),
     ),
   );
@@ -88,6 +90,9 @@ Widget _buildHome({
     ],
     child: MaterialApp(
       theme: buildAppTheme(Brightness.light),
+      locale: const Locale('es'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: const HomeScreen(),
     ),
   );

@@ -15,7 +15,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../core/preferences/app_preferences.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../accounts/application/accounts_providers.dart';
 import '../../auth/application/auth_providers.dart';
 
@@ -33,26 +35,29 @@ class _OnboardingPageData {
 }
 
 /// Páginas del tutorial, en orden.
-const _pages = [
+///
+/// Es una función y no una constante porque los textos dependen del idioma
+/// activo y se resuelven con `AppLocalizations`.
+List<_OnboardingPageData> _pages(AppLocalizations l10n) => [
   _OnboardingPageData(
     icon: Icons.account_balance_wallet_outlined,
-    title: 'Todo tu dinero, en un solo lugar',
-    description: 'Consulta tu balance, tus cuentas y tus metas de ahorro de forma clara y sin complicaciones.',
+    title: l10n.onboardingPage1Title,
+    description: l10n.onboardingPage1Description,
   ),
   _OnboardingPageData(
     icon: Icons.add_circle_outline_rounded,
-    title: 'Registra en segundos',
-    description: 'Toca el botón + para anotar un gasto, un ingreso o un ahorro. Solo eliges el monto, la cuenta y la categoría.',
+    title: l10n.onboardingPage2Title,
+    description: l10n.onboardingPage2Description,
   ),
   _OnboardingPageData(
     icon: Icons.donut_large_rounded,
-    title: 'Entiende en qué gastas',
-    description: 'Revisa tus gastos por categoría y descubre dónde puedes ajustar para llegar más lejos.',
+    title: l10n.onboardingPage3Title,
+    description: l10n.onboardingPage3Description,
   ),
   _OnboardingPageData(
     icon: Icons.flag_rounded,
-    title: 'Ahorra con propósito',
-    description: 'Crea metas como tus vacaciones o un fondo de emergencia y mira cómo avanzas cada mes.',
+    title: l10n.onboardingPage4Title,
+    description: l10n.onboardingPage4Description,
   ),
 ];
 
@@ -68,10 +73,13 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+  /// Número fijo de páginas del tutorial.
+  static const int _pageCount = 4;
+
   final PageController _controller = PageController();
   int _index = 0;
 
-  bool get _isLast => _index == _pages.length - 1;
+  bool get _isLast => _index == _pageCount - 1;
 
   @override
   void dispose() {
@@ -121,6 +129,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final pages = _pages(l10n);
     final theme = Theme.of(context);
     final palette = context.palette;
 
@@ -152,14 +162,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       const Spacer(),
                       if (widget.replay)
                         IconButton(
-                          tooltip: 'Cerrar',
+                          tooltip: l10n.close,
                           onPressed: () => context.pop(),
                           icon: const Icon(Icons.close_rounded),
                         )
                       else if (!_isLast)
                         TextButton(
                           onPressed: _finish,
-                          child: const Text('Omitir'),
+                          child: Text(l10n.skip),
                         ),
                     ],
                   ),
@@ -167,10 +177,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   Expanded(
                     child: PageView.builder(
                       controller: _controller,
-                      itemCount: _pages.length,
+                      itemCount: _pageCount,
                       onPageChanged: (index) => setState(() => _index = index),
                       itemBuilder: (context, index) {
-                        final page = _pages[index];
+                        final page = pages[index];
                         return LayoutBuilder(
                           builder: (context, constraints) {
                             // En pantallas bajas la página puede desplazarse
@@ -242,7 +252,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      for (var index = 0; index < _pages.length; index++)
+                      for (var index = 0; index < _pageCount; index++)
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           curve: Curves.easeOut,
@@ -261,11 +271,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   const SizedBox(height: AppSpacing.xl),
                   FilledButton(
                     onPressed: _next,
-                    child: Text(_isLast ? 'Empezar' : 'Siguiente'),
+                    child: Text(
+                      _isLast ? l10n.onboardingStart : l10n.onboardingNext,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'Paso ${_index + 1} de ${_pages.length}',
+                    l10n.onboardingStep(_index + 1, _pageCount),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: palette.muted,
                     ),

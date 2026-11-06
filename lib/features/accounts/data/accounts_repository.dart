@@ -1,20 +1,23 @@
 // Archivo: lib/features/accounts/data/accounts_repository.dart
 //
-// Acceso a las cuentas del usuario en Supabase. Traduce errores técnicos a
-// mensajes que se pueden mostrar directamente en la interfaz.
+// Acceso a las cuentas del usuario en Supabase. Los fallos se devuelven como
+// un [AccountsError] tipado y la interfaz los traduce al idioma activo.
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'account.dart';
 
-/// Error de cuentas con un mensaje ya listo para mostrar al usuario.
-class AccountsFailure implements Exception {
-  const AccountsFailure(this.message);
+/// Motivos por los que una operación con cuentas puede fallar.
+enum AccountsError { load, save, permission, sessionExpired }
 
-  final String message;
+/// Error de cuentas con el motivo tipado.
+class AccountsFailure implements Exception {
+  const AccountsFailure(this.error);
+
+  final AccountsError error;
 
   @override
-  String toString() => message;
+  String toString() => 'AccountsFailure(${error.name})';
 }
 
 class AccountsRepository {
@@ -56,13 +59,9 @@ class AccountsRepository {
           ),
       ];
     } on PostgrestException {
-      throw const AccountsFailure(
-        'No pudimos cargar tus cuentas. Revisa tu conexión.',
-      );
+      throw const AccountsFailure(AccountsError.load);
     } catch (_) {
-      throw const AccountsFailure(
-        'No pudimos cargar tus cuentas. Revisa tu conexión.',
-      );
+      throw const AccountsFailure(AccountsError.load);
     }
   }
 
@@ -75,7 +74,7 @@ class AccountsRepository {
 
     final userId = _client.auth.currentUser?.id;
     if (userId == null) {
-      throw const AccountsFailure('Tu sesión expiró. Vuelve a entrar.');
+      throw const AccountsFailure(AccountsError.sessionExpired);
     }
 
     try {
@@ -91,17 +90,11 @@ class AccountsRepository {
     } on PostgrestException catch (error) {
       // 42501 = la política RLS rechazó la operación.
       if (error.code == '42501') {
-        throw const AccountsFailure(
-          'Tu cuenta no tiene permisos para guardar. Vuelve a entrar.',
-        );
+        throw const AccountsFailure(AccountsError.permission);
       }
-      throw const AccountsFailure(
-        'No pudimos guardar tus cuentas. Revisa tu conexión.',
-      );
+      throw const AccountsFailure(AccountsError.save);
     } catch (_) {
-      throw const AccountsFailure(
-        'No pudimos guardar tus cuentas. Revisa tu conexión.',
-      );
+      throw const AccountsFailure(AccountsError.save);
     }
   }
 }

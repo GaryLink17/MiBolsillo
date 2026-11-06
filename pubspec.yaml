@@ -59,6 +59,9 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  # Activa la generación de AppLocalizations a partir de los archivos ARB
+  # definidos en l10n.yaml.
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
@@ -90,3 +93,6 @@ flutter_launcher_icons:
   adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
   adaptive_icon_monochrome: "assets/icon/app_icon_monochrome.png"
   image_path_ios_dark_transparent: "assets/icon/app_icon_dark.png"
+
+  flutter:
+    generate: true

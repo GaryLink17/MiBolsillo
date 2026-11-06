@@ -16,6 +16,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_page_metrics.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../core/formatting/money_format.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/app_page.dart';
 import '../../../shared/widgets/common.dart';
@@ -23,6 +24,8 @@ import '../../../shared/widgets/money_text.dart';
 import '../application/accounts_providers.dart';
 import '../data/account.dart';
 import '../data/accounts_repository.dart';
+import 'account_labels.dart';
+import 'accounts_error_messages.dart';
 
 /// Primera configuración: cuánto dinero tiene el usuario en cada cuenta.
 ///
@@ -109,17 +112,18 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
 
   /// Guarda las cuentas activas en Supabase y navega al inicio.
   Future<void> _submit() async {
+    final l10n = context.l10n;
     if (!_formKey.currentState!.validate()) return;
 
     final selected = _drafts.where((draft) => draft.enabled).toList();
     if (selected.isEmpty) {
-      setState(() => _error = 'Activa al menos una cuenta.');
+      setState(() => _error = l10n.initialBalanceActivateOne);
       return;
     }
 
     final repository = ref.read(accountsRepositoryProvider);
     if (repository == null) {
-      setState(() => _error = 'La nube no está configurada en esta versión.');
+      setState(() => _error = l10n.cloudNotConfigured);
       return;
     }
 
@@ -132,7 +136,7 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
       await repository.createInitial([
         for (final draft in selected)
           InitialAccount(
-            name: draft.kind.label,
+            name: draft.kind.label(l10n),
             kind: draft.kind,
             amount: MoneyFormat.tryParse(draft.controller.text) ?? 0,
           ),
@@ -143,12 +147,12 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(content: Text('Tus cuentas están listas.')),
+          SnackBar(content: Text(l10n.initialBalanceReady)),
         );
       context.go('/inicio');
     } on AccountsFailure catch (failure) {
       if (!mounted) return;
-      setState(() => _error = failure.message);
+      setState(() => _error = failure.error.message(l10n));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -167,6 +171,7 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final palette = context.palette;
 
@@ -193,19 +198,18 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
                   const Spacer(),
                   TextButton(
                     onPressed: _saving ? null : _skip,
-                    child: const Text('Omitir'),
+                    child: Text(l10n.skip),
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
-                '¿Con cuánto empiezas?',
+                l10n.initialBalanceTitle,
                 style: theme.textTheme.displayLarge?.copyWith(fontSize: 34),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Escribe lo que tienes hoy en cada cuenta. Si alguna no la '
-                'usas, desactívala.',
+                l10n.initialBalanceSubtitle,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: palette.muted,
                 ),
@@ -233,7 +237,7 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Tu saldo total',
+                        l10n.initialBalanceTotal,
                         style: theme.textTheme.titleMedium,
                       ),
                     ),
@@ -258,12 +262,12 @@ class _InitialBalanceScreenState extends ConsumerState<InitialBalanceScreen> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Empezar'),
+                    : Text(l10n.initialBalanceStart),
               ),
               const SizedBox(height: AppSpacing.xs),
               TextButton(
                 onPressed: _saving ? null : _skip,
-                child: const Text('Lo hago después'),
+                child: Text(l10n.initialBalanceLater),
               ),
               const SizedBox(height: AppSpacing.md),
             ],
@@ -288,6 +292,7 @@ class _AccountCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final palette = context.palette;
 
@@ -313,12 +318,12 @@ class _AccountCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
-                  draft.kind.label,
+                  draft.kind.label(l10n),
                   style: theme.textTheme.titleMedium,
                 ),
               ),
               Text(
-                'Usar',
+                l10n.initialBalanceUse,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: palette.muted,
                 ),
@@ -340,9 +345,9 @@ class _AccountCard extends StatelessWidget {
                 FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
               ],
               onChanged: (_) => onAmountChanged(),
-              decoration: const InputDecoration(
-                labelText: 'Saldo actual',
-                hintText: '0.00',
+              decoration: InputDecoration(
+                labelText: l10n.initialBalanceAmountLabel,
+                hintText: l10n.initialBalanceAmountHint,
                 prefixText: 'RD\$ ',
                 isDense: true,
               ),
@@ -352,10 +357,10 @@ class _AccountCard extends StatelessWidget {
                 final text = value?.trim() ?? '';
                 if (text.isEmpty) return null;
                 final amount = MoneyFormat.tryParse(text);
-                if (amount == null) return 'Escribe un monto válido.';
-                if (amount < 0) return 'El monto no puede ser negativo.';
+                if (amount == null) return l10n.initialBalanceInvalidAmount;
+                if (amount < 0) return l10n.initialBalanceNegative;
                 if (amount > 999999999999) {
-                  return 'Ese monto es demasiado grande.';
+                  return l10n.initialBalanceTooLarge;
                 }
                 return null;
               },

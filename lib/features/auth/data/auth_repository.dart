@@ -1,18 +1,36 @@
 // Archivo: lib/features/auth/data/auth_repository.dart
 //
-// Envuelve las operaciones de autenticación de Supabase y convierte sus
-// mensajes en textos en español para la interfaz.
+// Envuelve las operaciones de autenticación de Supabase. Los errores se
+// devuelven como un [AuthError] tipado; la capa de presentación decide cómo
+// traducirlos al idioma activo.
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Error de autenticación con un mensaje ya listo para mostrar al usuario.
-class AuthFailure implements Exception {
-  const AuthFailure(this.message);
+/// Motivos por los que una operación de autenticación puede fallar.
+///
+/// No contienen texto visible: eso permite traducirlos sin acoplar la capa de
+/// datos a un idioma concreto.
+enum AuthError {
+  invalidCredentials,
+  emailNotConfirmed,
+  alreadyRegistered,
+  weakPassword,
+  invalidEmail,
+  signupDisabled,
+  rateLimited,
+  network,
+  signOutFailed,
+  unknown,
+}
 
-  final String message;
+/// Error de autenticación con el motivo tipado.
+class AuthFailure implements Exception {
+  const AuthFailure(this.error);
+
+  final AuthError error;
 
   @override
-  String toString() => message;
+  String toString() => 'AuthFailure(${error.name})';
 }
 
 class AuthRepository {
@@ -25,7 +43,7 @@ class AuthRepository {
   /// Inicia sesión con correo y contraseña.
   ///
   /// Devuelve la sesión creada. Si Supabase rechaza las credenciales o falla
-  /// la red, lanza [AuthFailure] con un mensaje entendible.
+  /// la red, lanza [AuthFailure] con el motivo correspondiente.
   Future<Session?> signIn({
     required String email,
     required String password,
@@ -39,9 +57,7 @@ class AuthRepository {
     } on AuthException catch (error) {
       throw AuthFailure(_translate(error.message));
     } catch (_) {
-      throw const AuthFailure(
-        'No pudimos conectar. Revisa tu internet e intenta de nuevo.',
-      );
+      throw const AuthFailure(AuthError.network);
     }
   }
 
@@ -65,9 +81,7 @@ class AuthRepository {
     } on AuthException catch (error) {
       throw AuthFailure(_translate(error.message));
     } catch (_) {
-      throw const AuthFailure(
-        'No pudimos conectar. Revisa tu internet e intenta de nuevo.',
-      );
+      throw const AuthFailure(AuthError.network);
     }
   }
 
@@ -76,40 +90,40 @@ class AuthRepository {
     try {
       await _client.auth.signOut();
     } catch (_) {
-      throw const AuthFailure('No pudimos cerrar la sesión. Intenta de nuevo.');
+      throw const AuthFailure(AuthError.signOutFailed);
     }
   }
 
-  /// Traduce los mensajes técnicos de Supabase a textos para el usuario.
+  /// Traduce los mensajes técnicos de Supabase a un [AuthError].
   ///
   /// Se compara en minúsculas porque los textos originales pueden variar en
   /// mayúsculas según el proveedor.
-  static String _translate(String raw) {
+  static AuthError _translate(String raw) {
     final message = raw.toLowerCase();
     if (message.contains('invalid login credentials')) {
-      return 'Correo o contraseña incorrectos.';
+      return AuthError.invalidCredentials;
     }
     if (message.contains('email not confirmed')) {
-      return 'Confirma tu correo antes de entrar.';
+      return AuthError.emailNotConfirmed;
     }
     if (message.contains('already registered') ||
         message.contains('already been registered')) {
-      return 'Ese correo ya tiene una cuenta.';
+      return AuthError.alreadyRegistered;
     }
     if (message.contains('password should be at least')) {
-      return 'La contraseña debe tener al menos 6 caracteres.';
+      return AuthError.weakPassword;
     }
     if (message.contains('invalid format') ||
         message.contains('unable to validate email')) {
-      return 'Escribe un correo válido.';
+      return AuthError.invalidEmail;
     }
     if (message.contains('signups not allowed') ||
         message.contains('signup is disabled')) {
-      return 'El registro está desactivado por ahora.';
+      return AuthError.signupDisabled;
     }
     if (message.contains('rate limit') || message.contains('too many')) {
-      return 'Demasiados intentos. Espera un momento e intenta de nuevo.';
+      return AuthError.rateLimited;
     }
-    return 'No pudimos completar la operación. Intenta de nuevo.';
+    return AuthError.unknown;
   }
 }

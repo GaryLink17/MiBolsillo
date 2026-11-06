@@ -12,12 +12,8 @@ import '../../../app/theme/app_colors.dart';
 /// Las categorías de gasto solo aparecen en gastos y las de ingreso solo en
 /// ingresos. Cualquier valor distinto de `ingreso` se trata como gasto.
 enum CategoryKind {
-  gasto('Gasto'),
-  ingreso('Ingreso');
-
-  const CategoryKind(this.label);
-
-  final String label;
+  gasto,
+  ingreso;
 
   static CategoryKind fromDb(String? value) {
     return value == 'ingreso' ? CategoryKind.ingreso : CategoryKind.gasto;

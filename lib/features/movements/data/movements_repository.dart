@@ -1,21 +1,33 @@
 // Archivo: lib/features/movements/data/movements_repository.dart
 //
 // Acceso a los movimientos en Supabase: crear, listar y calcular totales del
-// mes. Los errores se traducen a mensajes para la interfaz.
+// mes. Los fallos se devuelven como un [MovementsError] tipado.
 
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'movement.dart';
 
-/// Error de movimientos con un mensaje listo para mostrar al usuario.
-class MovementsFailure implements Exception {
-  const MovementsFailure(this.message);
+/// Motivos por los que una operación con movimientos puede fallar.
+enum MovementsError {
+  load,
+  save,
+  totals,
+  permission,
+  accountOrCategoryMissing,
+  invalidData,
+  saveUnknown,
+  sessionExpired,
+}
 
-  final String message;
+/// Error de movimientos con el motivo tipado.
+class MovementsFailure implements Exception {
+  const MovementsFailure(this.error);
+
+  final MovementsError error;
 
   @override
-  String toString() => message;
+  String toString() => 'MovementsFailure(${error.name})';
 }
 
 class MovementsRepository {
@@ -33,7 +45,7 @@ class MovementsRepository {
   Future<void> create(MovementDraft draft) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) {
-      throw const MovementsFailure('Tu sesión expiró. Vuelve a entrar.');
+      throw const MovementsFailure(MovementsError.sessionExpired);
     }
 
     final note = draft.note?.trim();
@@ -51,9 +63,7 @@ class MovementsRepository {
     } on PostgrestException catch (error) {
       throw MovementsFailure(_translate(error));
     } catch (_) {
-      throw const MovementsFailure(
-        'No pudimos guardar el movimiento. Revisa tu conexión.',
-      );
+      throw const MovementsFailure(MovementsError.save);
     }
   }
 
@@ -79,13 +89,9 @@ class MovementsRepository {
 
       return rows.map(MovementEntry.fromMap).toList(growable: false);
     } on PostgrestException {
-      throw const MovementsFailure(
-        'No pudimos cargar tus movimientos. Revisa tu conexión.',
-      );
+      throw const MovementsFailure(MovementsError.load);
     } catch (_) {
-      throw const MovementsFailure(
-        'No pudimos cargar tus movimientos. Revisa tu conexión.',
-      );
+      throw const MovementsFailure(MovementsError.load);
     }
   }
 
@@ -121,23 +127,19 @@ class MovementsRepository {
 
       return MovementTotals(income: income, expenses: expenses);
     } on PostgrestException {
-      throw const MovementsFailure(
-        'No pudimos cargar los totales del mes. Revisa tu conexión.',
-      );
+      throw const MovementsFailure(MovementsError.totals);
     } catch (_) {
-      throw const MovementsFailure(
-        'No pudimos cargar los totales del mes. Revisa tu conexión.',
-      );
+      throw const MovementsFailure(MovementsError.totals);
     }
   }
 
-  /// Traduce códigos de error de PostgreSQL a mensajes para el usuario.
-  static String _translate(PostgrestException error) {
+  /// Traduce códigos de error de PostgreSQL a un [MovementsError].
+  static MovementsError _translate(PostgrestException error) {
     return switch (error.code) {
-      '42501' => 'Tu cuenta no tiene permisos para guardar movimientos.',
-      '23503' => 'La cuenta o la categoría ya no existe.',
-      '23514' => 'Revisa los datos del movimiento e intenta de nuevo.',
-      _ => 'No pudimos guardar el movimiento. Intenta de nuevo.',
+      '42501' => MovementsError.permission,
+      '23503' => MovementsError.accountOrCategoryMissing,
+      '23514' => MovementsError.invalidData,
+      _ => MovementsError.saveUnknown,
     };
   }
 }

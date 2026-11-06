@@ -8,12 +8,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
+import '../../../core/l10n/l10n.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final palette = context.palette;
 
@@ -45,7 +47,7 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.xxl),
                   Text(
-                    'Mi Bolsillo',
+                    l10n.appTitle,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.headlineLarge?.copyWith(
                       fontSize: 34,
@@ -54,7 +56,7 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'Tu dinero, claro y en orden.',
+                    l10n.welcomeSubtitle,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: palette.muted,
@@ -62,35 +64,32 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.xxl),
                   // Tres beneficios breves para explicar la propuesta.
-                  const _WelcomePoint(
+                  _WelcomePoint(
                     icon: Icons.account_balance_wallet_outlined,
-                    title: 'Todo en un solo lugar',
-                    description:
-                        'Tus cuentas, tus movimientos y tus metas de ahorro.',
+                    title: l10n.welcomePointAllTitle,
+                    description: l10n.welcomePointAllDescription,
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  const _WelcomePoint(
+                  _WelcomePoint(
                     icon: Icons.donut_large_rounded,
-                    title: 'Entiende en qué gastas',
-                    description:
-                        'Categorías claras para saber dónde puedes ajustar.',
+                    title: l10n.welcomePointSpendingTitle,
+                    description: l10n.welcomePointSpendingDescription,
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  const _WelcomePoint(
+                  _WelcomePoint(
                     icon: Icons.lock_outline_rounded,
-                    title: 'Privado y tuyo',
-                    description:
-                        'Tus datos quedan en tu cuenta y solo tú los ves.',
+                    title: l10n.welcomePointPrivateTitle,
+                    description: l10n.welcomePointPrivateDescription,
                   ),
                   const SizedBox(height: AppSpacing.xxl),
                   FilledButton(
                     onPressed: () => context.push('/onboarding'),
-                    child: const Text('Comenzar'),
+                    child: Text(l10n.welcomeStart),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   TextButton(
                     onPressed: () => context.push('/entrar'),
-                    child: const Text('Ya tengo cuenta'),
+                    child: Text(l10n.welcomeHaveAccount),
                   ),
                 ],
               ),

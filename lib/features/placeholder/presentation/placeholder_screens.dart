@@ -9,6 +9,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_spacing.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../shared/widgets/app_page.dart';
 import '../../../shared/widgets/common.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -43,7 +44,7 @@ class FeaturePlaceholderScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.headlineLarge,
                   ),
                 ),
-                const AppBadge(label: 'Próximo paso'),
+                AppBadge(label: context.l10n.nextStep),
               ],
             ),
           ),
@@ -51,7 +52,7 @@ class FeaturePlaceholderScreen extends StatelessWidget {
           Expanded(
             child: EmptyState(
               icon: icon,
-              title: 'Estamos construyendo esta sección',
+              title: context.l10n.placeholderTitle,
               message: message,
             ),
           ),
@@ -67,11 +68,11 @@ class AccountsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const FeaturePlaceholderScreen(
-      title: 'Cuentas',
+    final l10n = context.l10n;
+    return FeaturePlaceholderScreen(
+      title: l10n.accountsTitle,
       icon: Icons.account_balance_wallet_outlined,
-      message:
-          'Administra tus cuentas, saldos y metas de ahorro en un solo lugar.',
+      message: l10n.accountsPlaceholder,
     );
   }
 }
@@ -82,10 +83,11 @@ class CategoriesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const FeaturePlaceholderScreen(
-      title: 'Categorías',
+    final l10n = context.l10n;
+    return FeaturePlaceholderScreen(
+      title: l10n.categoriesTitle,
       icon: Icons.pie_chart_outline_rounded,
-      message: 'Descubre en qué se va tu dinero con gráficos claros y comparaciones por semana, mes o año.',
+      message: l10n.categoriesPlaceholder,
     );
   }
 }
