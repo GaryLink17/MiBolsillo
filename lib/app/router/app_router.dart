@@ -17,10 +17,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/l10n/l10n.dart';
 import '../../core/preferences/app_preferences.dart';
+import '../../features/accounts/presentation/accounts_screen.dart';
 import '../../features/accounts/presentation/initial_balance_screen.dart';
 import '../../features/auth/application/auth_providers.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
+import '../../features/goals/presentation/new_goal_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/movements/presentation/movements_screen.dart';
 import '../../features/movements/presentation/new_movement_screen.dart';
@@ -125,6 +127,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/nuevo-movimiento',
         builder: (context, state) => const NewMovementScreen(),
+      ),
+      // Formulario para crear una meta de ahorro.
+      GoRoute(
+        path: '/nueva-meta',
+        builder: (context, state) => const NewGoalScreen(),
       ),
 
       // Contenedor de las cuatro pestañas principales. `indexedStack` conserva

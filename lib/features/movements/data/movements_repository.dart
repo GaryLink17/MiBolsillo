@@ -14,7 +14,7 @@ enum MovementsError {
   save,
   totals,
   permission,
-  accountOrCategoryMissing,
+  relatedMissing,
   invalidData,
   saveUnknown,
   sessionExpired,
@@ -38,10 +38,13 @@ class MovementsRepository {
   // Supabase espera fechas como `yyyy-MM-dd` para columnas `date`.
   static final _dateFormat = DateFormat('yyyy-MM-dd');
 
-  /// Inserta un gasto o un ingreso del usuario con la sesión actual.
+  /// Inserta un gasto, un ingreso o un ahorro del usuario con la sesión actual.
   ///
   /// El monto se redondea a dos decimales antes de enviarlo y la nota se
   /// recorta; si queda vacía se guarda `null` para no ensuciar la base.
+  ///
+  /// El ahorro lleva `goal_id` y no lleva `category_id`; los otros tipos hacen
+  /// lo contrario. Esto respeta la restricción `movement_destination`.
   Future<void> create(MovementDraft draft) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) {
@@ -49,6 +52,7 @@ class MovementsRepository {
     }
 
     final note = draft.note?.trim();
+    final isSaving = draft.type == MovementType.ahorro;
 
     try {
       await _client.from('movements').insert({
@@ -57,7 +61,8 @@ class MovementsRepository {
         'amount': double.parse(draft.amount.toStringAsFixed(2)),
         'occurred_on': _dateFormat.format(draft.occurredOn),
         'account_id': draft.accountId,
-        'category_id': draft.categoryId,
+        'category_id': isSaving ? null : draft.categoryId,
+        'goal_id': isSaving ? draft.goalId : null,
         'note': (note == null || note.isEmpty) ? null : note,
       });
     } on PostgrestException catch (error) {
@@ -69,11 +74,9 @@ class MovementsRepository {
 
   /// Movimientos del usuario, del más reciente al más antiguo.
   ///
-  /// Se piden también el nombre de la cuenta y los datos de la categoría para
-  /// que la lista no tenga que hacer consultas adicionales por cada fila.
-  ///
-  /// El ahorro se incorpora en la entrega de metas; por eso hoy se filtra solo
-  /// `gasto` e `ingreso`.
+  /// Se piden también el nombre de la cuenta y los datos de la categoría o de
+  /// la meta para que la lista no tenga que hacer consultas adicionales por
+  /// cada fila.
   Future<List<MovementEntry>> list() async {
     try {
       final rows = await _client
@@ -81,9 +84,9 @@ class MovementsRepository {
           .select(
             'id, type, amount, occurred_on, note, '
             'accounts(name), '
-            'categories(id, name, kind, tone, icon)',
+            'categories(id, name, kind, tone, icon), '
+            'goals(name)',
           )
-          .inFilter('type', const ['gasto', 'ingreso'])
           .order('occurred_on', ascending: false)
           .order('created_at', ascending: false);
 
@@ -137,7 +140,7 @@ class MovementsRepository {
   static MovementsError _translate(PostgrestException error) {
     return switch (error.code) {
       '42501' => MovementsError.permission,
-      '23503' => MovementsError.accountOrCategoryMissing,
+      '23503' => MovementsError.relatedMissing,
       '23514' => MovementsError.invalidData,
       _ => MovementsError.saveUnknown,
     };

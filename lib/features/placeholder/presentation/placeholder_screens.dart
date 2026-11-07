@@ -62,21 +62,6 @@ class FeaturePlaceholderScreen extends StatelessWidget {
   }
 }
 
-/// Placeholder de Cuentas. Se sustituirá por "Cuentas y metas" en la Parte 3.
-class AccountsScreen extends StatelessWidget {
-  const AccountsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return FeaturePlaceholderScreen(
-      title: l10n.accountsTitle,
-      icon: Icons.account_balance_wallet_outlined,
-      message: l10n.accountsPlaceholder,
-    );
-  }
-}
-
 /// Placeholder de Categorías.
 class CategoriesScreen extends StatelessWidget {
   const CategoriesScreen({super.key});

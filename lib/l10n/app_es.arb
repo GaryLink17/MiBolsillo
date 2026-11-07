@@ -96,6 +96,7 @@
   "homeIncome": "Ingresos",
   "homeExpenses": "Gastos",
   "homeTotalsError": "No pudimos cargar los totales del mes.",
+  "homeBalanceSavingsError": "No pudimos sumar tus ahorros al balance.",
   "homeMyAccounts": "Mis cuentas",
   "homeNoAccountsTitle": "Aún no tienes cuentas",
   "homeNoAccountsMessage": "Configura tu saldo inicial para ver cuánto dinero tienes hoy en cada cuenta.",
@@ -103,7 +104,7 @@
   "homeRecentMovements": "Movimientos recientes",
   "homeSeeAll": "Ver todos",
   "homeNoMovementsTitle": "Sin movimientos todavía",
-  "homeNoMovementsMessage": "Cuando registres un gasto o un ingreso, aparecerá aquí.",
+  "homeNoMovementsMessage": "Cuando registres un gasto, un ingreso o un ahorro, aparecerá aquí.",
   "homeMonthSelector": "El selector de mes",
   "homeComingSoon": "{feature} llega en el próximo paso.",
   "@homeComingSoon": {
@@ -115,12 +116,13 @@
   },
   "movementsTitle": "Movimientos",
   "movementsEmptyTitle": "Sin movimientos todavía",
-  "movementsEmptyMessage": "Registra tu primer gasto o ingreso para empezar a ver cómo se mueve tu dinero.",
+  "movementsEmptyMessage": "Registra tu primer gasto, ingreso o ahorro para empezar a ver cómo se mueve tu dinero.",
   "movementsRegisterFirst": "Registrar el primero",
   "today": "Hoy",
   "yesterday": "Ayer",
   "movementExpense": "Gasto",
   "movementIncome": "Ingreso",
+  "movementSavings": "Ahorro",
   "amountLabel": "Monto",
   "amountHint": "0.00",
   "amountRequired": "Escribe el monto.",
@@ -132,16 +134,24 @@
   "needAccountMessage": "Necesitas al menos una cuenta para registrar movimientos.",
   "categoryOptional": "Categoría (opcional)",
   "noCategory": "Sin categoría",
+  "goalQuestion": "¿A qué meta ahorras?",
+  "goalRequired": "Elige la meta a la que vas a ahorrar.",
+  "savingsNoGoalsTitle": "Primero crea una meta",
+  "savingsNoGoalsMessage": "Necesitas una meta para separar dinero y ver tu progreso.",
+  "savingsHint": "El ahorro se descuenta de la cuenta y suma a tu meta.",
   "dateLabel": "Fecha",
   "datePickerHelp": "Fecha del movimiento",
   "noteLabel": "Nota (opcional)",
   "noteHint": "Ej. almuerzo con el equipo",
   "saveExpense": "Guardar gasto",
   "saveIncome": "Guardar ingreso",
+  "saveSaving": "Guardar ahorro",
   "expenseSaved": "Gasto registrado.",
   "incomeSaved": "Ingreso registrado.",
+  "savingSaved": "Ahorro registrado.",
   "accountExpenseRequired": "Elige la cuenta de donde sale el dinero.",
   "accountIncomeRequired": "Elige la cuenta donde entra el dinero.",
+  "accountSavingsRequired": "Elige la cuenta de donde sale el ahorro.",
   "initialBalanceTitle": "¿Con cuánto empiezas?",
   "initialBalanceSubtitle": "Escribe lo que tienes hoy en cada cuenta. Si alguna no la usas, desactívala.",
   "initialBalanceTotal": "Tu saldo total",
@@ -186,8 +196,8 @@
   "settingsVersion": "Mi Bolsillo · versión 1.0.0",
   "aboutContent": "Versión 1.0.0\n\nTus finanzas, claras y en orden. Hecho para acompañarte en cada gasto, ingreso y ahorro.",
   "placeholderTitle": "Estamos construyendo esta sección",
-  "accountsTitle": "Cuentas",
-  "accountsPlaceholder": "Administra tus cuentas, saldos y metas de ahorro en un solo lugar.",
+  "accountsTitle": "Cuentas y metas",
+  "accountsSubtitle": "Revisa tus saldos y avanza en tus metas de ahorro.",
   "categoriesTitle": "Categorías",
   "categoriesPlaceholder": "Descubre en qué se va tu dinero con gráficos claros y comparaciones por semana, mes o año.",
   "navHome": "Inicio",
@@ -214,8 +224,62 @@
   "movementsSaveError": "No pudimos guardar el movimiento. Revisa tu conexión.",
   "movementsTotalsError": "No pudimos cargar los totales del mes. Revisa tu conexión.",
   "movementsPermissionError": "Tu cuenta no tiene permisos para guardar movimientos.",
-  "movementsAccountOrCategoryMissing": "La cuenta o la categoría ya no existe.",
+  "movementsRelatedMissing": "La cuenta, la categoría o la meta ya no existe.",
   "movementsInvalidData": "Revisa los datos del movimiento e intenta de nuevo.",
   "movementsSaveUnknown": "No pudimos guardar el movimiento. Intenta de nuevo.",
-  "categoriesLoadError": "No pudimos cargar tus categorías. Revisa tu conexión."
+  "categoriesLoadError": "No pudimos cargar tus categorías. Revisa tu conexión.",
+  "goalsSectionTitle": "Metas de ahorro",
+  "goalsEmptyTitle": "Aún no tienes metas",
+  "goalsEmptyMessage": "Crea una meta y separa dinero para lo que quieres lograr.",
+  "goalsCreate": "Crear meta",
+  "goalsLoadError": "No pudimos cargar tus metas. Revisa tu conexión.",
+  "goalsSaveError": "No pudimos guardar la meta. Revisa tu conexión.",
+  "goalsPermissionError": "Tu cuenta no tiene permisos para guardar metas.",
+  "goalsInvalidData": "Revisa los datos de la meta e intenta de nuevo.",
+  "goalsSaveUnknown": "No pudimos guardar la meta. Intenta de nuevo.",
+  "goalNewTitle": "Nueva meta",
+  "goalNameLabel": "Nombre de la meta",
+  "goalNameHint": "Ej. Vacaciones, fondo de emergencia",
+  "goalNameRequired": "Escribe un nombre para la meta.",
+  "goalNameTooLong": "Usa 60 caracteres o menos.",
+  "goalTargetLabel": "Monto objetivo",
+  "goalTargetRequired": "Escribe el monto objetivo.",
+  "goalTargetInvalid": "Escribe un monto válido.",
+  "goalTargetPositive": "El monto debe ser mayor que cero.",
+  "goalTargetTooLarge": "Ese monto es demasiado grande.",
+  "goalDateOptional": "Fecha objetivo (opcional)",
+  "goalNoDate": "Sin fecha",
+  "goalClearDate": "Quitar fecha",
+  "goalDatePickerHelp": "Fecha objetivo",
+  "goalDatePast": "Elige una fecha de hoy en adelante.",
+  "goalSave": "Guardar meta",
+  "goalSaved": "Meta creada.",
+  "goalSavedOf": "Ahorrado: {saved} de {target}",
+  "@goalSavedOf": {
+    "placeholders": {
+      "saved": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "goalRemaining": "Faltan {amount}",
+  "@goalRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "goalTargetFor": "Para {date}",
+  "@goalTargetFor": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "goalCompleted": "Meta lograda"
 }

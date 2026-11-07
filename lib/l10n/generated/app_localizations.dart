@@ -572,6 +572,12 @@ abstract class AppLocalizations {
   /// **'No pudimos cargar los totales del mes.'**
   String get homeTotalsError;
 
+  /// No description provided for @homeBalanceSavingsError.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos sumar tus ahorros al balance.'**
+  String get homeBalanceSavingsError;
+
   /// No description provided for @homeMyAccounts.
   ///
   /// In es, this message translates to:
@@ -617,7 +623,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeNoMovementsMessage.
   ///
   /// In es, this message translates to:
-  /// **'Cuando registres un gasto o un ingreso, aparecerá aquí.'**
+  /// **'Cuando registres un gasto, un ingreso o un ahorro, aparecerá aquí.'**
   String get homeNoMovementsMessage;
 
   /// No description provided for @homeMonthSelector.
@@ -647,7 +653,7 @@ abstract class AppLocalizations {
   /// No description provided for @movementsEmptyMessage.
   ///
   /// In es, this message translates to:
-  /// **'Registra tu primer gasto o ingreso para empezar a ver cómo se mueve tu dinero.'**
+  /// **'Registra tu primer gasto, ingreso o ahorro para empezar a ver cómo se mueve tu dinero.'**
   String get movementsEmptyMessage;
 
   /// No description provided for @movementsRegisterFirst.
@@ -679,6 +685,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ingreso'**
   String get movementIncome;
+
+  /// No description provided for @movementSavings.
+  ///
+  /// In es, this message translates to:
+  /// **'Ahorro'**
+  String get movementSavings;
 
   /// No description provided for @amountLabel.
   ///
@@ -746,6 +758,36 @@ abstract class AppLocalizations {
   /// **'Sin categoría'**
   String get noCategory;
 
+  /// No description provided for @goalQuestion.
+  ///
+  /// In es, this message translates to:
+  /// **'¿A qué meta ahorras?'**
+  String get goalQuestion;
+
+  /// No description provided for @goalRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige la meta a la que vas a ahorrar.'**
+  String get goalRequired;
+
+  /// No description provided for @savingsNoGoalsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Primero crea una meta'**
+  String get savingsNoGoalsTitle;
+
+  /// No description provided for @savingsNoGoalsMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Necesitas una meta para separar dinero y ver tu progreso.'**
+  String get savingsNoGoalsMessage;
+
+  /// No description provided for @savingsHint.
+  ///
+  /// In es, this message translates to:
+  /// **'El ahorro se descuenta de la cuenta y suma a tu meta.'**
+  String get savingsHint;
+
   /// No description provided for @dateLabel.
   ///
   /// In es, this message translates to:
@@ -782,6 +824,12 @@ abstract class AppLocalizations {
   /// **'Guardar ingreso'**
   String get saveIncome;
 
+  /// No description provided for @saveSaving.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar ahorro'**
+  String get saveSaving;
+
   /// No description provided for @expenseSaved.
   ///
   /// In es, this message translates to:
@@ -794,6 +842,12 @@ abstract class AppLocalizations {
   /// **'Ingreso registrado.'**
   String get incomeSaved;
 
+  /// No description provided for @savingSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Ahorro registrado.'**
+  String get savingSaved;
+
   /// No description provided for @accountExpenseRequired.
   ///
   /// In es, this message translates to:
@@ -805,6 +859,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Elige la cuenta donde entra el dinero.'**
   String get accountIncomeRequired;
+
+  /// No description provided for @accountSavingsRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige la cuenta de donde sale el ahorro.'**
+  String get accountSavingsRequired;
 
   /// No description provided for @initialBalanceTitle.
   ///
@@ -1073,14 +1133,14 @@ abstract class AppLocalizations {
   /// No description provided for @accountsTitle.
   ///
   /// In es, this message translates to:
-  /// **'Cuentas'**
+  /// **'Cuentas y metas'**
   String get accountsTitle;
 
-  /// No description provided for @accountsPlaceholder.
+  /// No description provided for @accountsSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Administra tus cuentas, saldos y metas de ahorro en un solo lugar.'**
-  String get accountsPlaceholder;
+  /// **'Revisa tus saldos y avanza en tus metas de ahorro.'**
+  String get accountsSubtitle;
 
   /// No description provided for @categoriesTitle.
   ///
@@ -1238,11 +1298,11 @@ abstract class AppLocalizations {
   /// **'Tu cuenta no tiene permisos para guardar movimientos.'**
   String get movementsPermissionError;
 
-  /// No description provided for @movementsAccountOrCategoryMissing.
+  /// No description provided for @movementsRelatedMissing.
   ///
   /// In es, this message translates to:
-  /// **'La cuenta o la categoría ya no existe.'**
-  String get movementsAccountOrCategoryMissing;
+  /// **'La cuenta, la categoría o la meta ya no existe.'**
+  String get movementsRelatedMissing;
 
   /// No description provided for @movementsInvalidData.
   ///
@@ -1261,6 +1321,186 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No pudimos cargar tus categorías. Revisa tu conexión.'**
   String get categoriesLoadError;
+
+  /// No description provided for @goalsSectionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Metas de ahorro'**
+  String get goalsSectionTitle;
+
+  /// No description provided for @goalsEmptyTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no tienes metas'**
+  String get goalsEmptyTitle;
+
+  /// No description provided for @goalsEmptyMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Crea una meta y separa dinero para lo que quieres lograr.'**
+  String get goalsEmptyMessage;
+
+  /// No description provided for @goalsCreate.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear meta'**
+  String get goalsCreate;
+
+  /// No description provided for @goalsLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos cargar tus metas. Revisa tu conexión.'**
+  String get goalsLoadError;
+
+  /// No description provided for @goalsSaveError.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos guardar la meta. Revisa tu conexión.'**
+  String get goalsSaveError;
+
+  /// No description provided for @goalsPermissionError.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu cuenta no tiene permisos para guardar metas.'**
+  String get goalsPermissionError;
+
+  /// No description provided for @goalsInvalidData.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisa los datos de la meta e intenta de nuevo.'**
+  String get goalsInvalidData;
+
+  /// No description provided for @goalsSaveUnknown.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos guardar la meta. Intenta de nuevo.'**
+  String get goalsSaveUnknown;
+
+  /// No description provided for @goalNewTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva meta'**
+  String get goalNewTitle;
+
+  /// No description provided for @goalNameLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de la meta'**
+  String get goalNameLabel;
+
+  /// No description provided for @goalNameHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej. Vacaciones, fondo de emergencia'**
+  String get goalNameHint;
+
+  /// No description provided for @goalNameRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe un nombre para la meta.'**
+  String get goalNameRequired;
+
+  /// No description provided for @goalNameTooLong.
+  ///
+  /// In es, this message translates to:
+  /// **'Usa 60 caracteres o menos.'**
+  String get goalNameTooLong;
+
+  /// No description provided for @goalTargetLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto objetivo'**
+  String get goalTargetLabel;
+
+  /// No description provided for @goalTargetRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe el monto objetivo.'**
+  String get goalTargetRequired;
+
+  /// No description provided for @goalTargetInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe un monto válido.'**
+  String get goalTargetInvalid;
+
+  /// No description provided for @goalTargetPositive.
+  ///
+  /// In es, this message translates to:
+  /// **'El monto debe ser mayor que cero.'**
+  String get goalTargetPositive;
+
+  /// No description provided for @goalTargetTooLarge.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese monto es demasiado grande.'**
+  String get goalTargetTooLarge;
+
+  /// No description provided for @goalDateOptional.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha objetivo (opcional)'**
+  String get goalDateOptional;
+
+  /// No description provided for @goalNoDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin fecha'**
+  String get goalNoDate;
+
+  /// No description provided for @goalClearDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar fecha'**
+  String get goalClearDate;
+
+  /// No description provided for @goalDatePickerHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha objetivo'**
+  String get goalDatePickerHelp;
+
+  /// No description provided for @goalDatePast.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige una fecha de hoy en adelante.'**
+  String get goalDatePast;
+
+  /// No description provided for @goalSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar meta'**
+  String get goalSave;
+
+  /// No description provided for @goalSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Meta creada.'**
+  String get goalSaved;
+
+  /// No description provided for @goalSavedOf.
+  ///
+  /// In es, this message translates to:
+  /// **'Ahorrado: {saved} de {target}'**
+  String goalSavedOf(String saved, String target);
+
+  /// No description provided for @goalRemaining.
+  ///
+  /// In es, this message translates to:
+  /// **'Faltan {amount}'**
+  String goalRemaining(String amount);
+
+  /// No description provided for @goalTargetFor.
+  ///
+  /// In es, this message translates to:
+  /// **'Para {date}'**
+  String goalTargetFor(String date);
+
+  /// No description provided for @goalCompleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Meta lograda'**
+  String get goalCompleted;
 }
 
 class _AppLocalizationsDelegate

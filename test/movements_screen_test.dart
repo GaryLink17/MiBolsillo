@@ -13,6 +13,8 @@ import 'package:mibolsillo/features/accounts/application/accounts_providers.dart
 import 'package:mibolsillo/features/accounts/data/account.dart';
 import 'package:mibolsillo/features/auth/application/auth_providers.dart';
 import 'package:mibolsillo/features/categories/data/category.dart';
+import 'package:mibolsillo/features/goals/application/goals_providers.dart';
+import 'package:mibolsillo/features/goals/data/savings_goal.dart';
 import 'package:mibolsillo/features/home/presentation/home_screen.dart';
 import 'package:mibolsillo/features/movements/application/movements_providers.dart';
 import 'package:mibolsillo/features/movements/data/movement.dart';
@@ -80,11 +82,13 @@ Widget _buildMovements({
 Widget _buildHome({
   required List<MovementEntry> movements,
   required MovementTotals totals,
+  List<SavingsGoal> goals = const [],
 }) {
   return ProviderScope(
     overrides: [
       supabaseClientProvider.overrideWithValue(null),
       accountsProvider.overrideWith((ref) async => const [_account]),
+      goalsProvider.overrideWith((ref) async => goals),
       movementsProvider.overrideWith((ref) async => movements),
       monthlyTotalsProvider.overrideWith((ref) async => totals),
     ],
@@ -211,5 +215,70 @@ void main() {
         .widgetList<MoneyText>(find.byType(MoneyText))
         .map((money) => money.amount);
     expect(amounts, containsAll(<double>[12000, 450]));
+  });
+
+  testWidgets('muestra el ahorro con su meta y signo negativo', (tester) async {
+    final today = DateUtils.dateOnly(DateTime.now());
+
+    await tester.pumpWidget(
+      _buildMovements(
+        movements: [
+          MovementEntry(
+            id: 'ahorro-1',
+            type: MovementType.ahorro,
+            amount: 300,
+            occurredOn: today,
+            accountName: 'Banco',
+            goalName: 'Vacaciones',
+            note: 'Mensual',
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Vacaciones'), findsOneWidget);
+    expect(find.text('Ahorro · Mensual · Banco'), findsOneWidget);
+
+    // El ahorro sale de la cuenta: se muestra en negativo.
+    final amounts = tester
+        .widgetList<MovementTile>(find.byType(MovementTile))
+        .map((tile) => tile.amount);
+    expect(amounts, contains(-300));
+  });
+
+  testWidgets('el balance total suma lo ahorrado en las metas', (tester) async {
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _buildHome(
+        movements: const [],
+        totals: MovementTotals.zero,
+        goals: const [
+          SavingsGoal(
+            id: 'meta-1',
+            name: 'Vacaciones',
+            targetAmount: 1000,
+            saved: 250,
+          ),
+          SavingsGoal(
+            id: 'meta-2',
+            name: 'Fondo',
+            targetAmount: 2000,
+            saved: 500,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // 1,500 de la cuenta + 750 ahorrados en las metas.
+    final amounts = tester
+        .widgetList<MoneyText>(find.byType(MoneyText))
+        .map((money) => money.amount);
+    expect(amounts, contains(2250));
   });
 }

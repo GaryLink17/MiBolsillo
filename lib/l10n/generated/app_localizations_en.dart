@@ -266,6 +266,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTotalsError => 'We couldn\'t load this month\'s totals.';
 
   @override
+  String get homeBalanceSavingsError =>
+      'We couldn\'t add your savings to the balance.';
+
+  @override
   String get homeMyAccounts => 'My accounts';
 
   @override
@@ -289,7 +293,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeNoMovementsMessage =>
-      'When you record an expense or income, it will appear here.';
+      'When you record an expense, income or saving, it will appear here.';
 
   @override
   String get homeMonthSelector => 'The month selector';
@@ -307,7 +311,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get movementsEmptyMessage =>
-      'Record your first expense or income to start seeing how your money moves.';
+      'Record your first expense, income or saving to start seeing how your money moves.';
 
   @override
   String get movementsRegisterFirst => 'Record the first one';
@@ -323,6 +327,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get movementIncome => 'Income';
+
+  @override
+  String get movementSavings => 'Saving';
 
   @override
   String get amountLabel => 'Amount';
@@ -359,6 +366,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noCategory => 'No category';
 
   @override
+  String get goalQuestion => 'Which goal are you saving toward?';
+
+  @override
+  String get goalRequired => 'Choose the goal you\'re saving toward.';
+
+  @override
+  String get savingsNoGoalsTitle => 'First create a goal';
+
+  @override
+  String get savingsNoGoalsMessage =>
+      'You need a goal to set money aside and track your progress.';
+
+  @override
+  String get savingsHint =>
+      'The saving is deducted from the account and added to your goal.';
+
+  @override
   String get dateLabel => 'Date';
 
   @override
@@ -377,10 +401,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveIncome => 'Save income';
 
   @override
+  String get saveSaving => 'Save saving';
+
+  @override
   String get expenseSaved => 'Expense recorded.';
 
   @override
   String get incomeSaved => 'Income recorded.';
+
+  @override
+  String get savingSaved => 'Saving recorded.';
 
   @override
   String get accountExpenseRequired =>
@@ -388,6 +418,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountIncomeRequired => 'Choose the account the money goes into.';
+
+  @override
+  String get accountSavingsRequired =>
+      'Choose the account the saving comes from.';
 
   @override
   String get initialBalanceTitle => 'How much are you starting with?';
@@ -525,11 +559,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get placeholderTitle => 'We\'re building this section';
 
   @override
-  String get accountsTitle => 'Accounts';
+  String get accountsTitle => 'Accounts and goals';
 
   @override
-  String get accountsPlaceholder =>
-      'Manage your accounts, balances and savings goals in one place.';
+  String get accountsSubtitle =>
+      'Check your balances and move forward with your savings goals.';
 
   @override
   String get categoriesTitle => 'Categories';
@@ -618,8 +652,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your account doesn\'t have permission to save movements.';
 
   @override
-  String get movementsAccountOrCategoryMissing =>
-      'The account or category no longer exists.';
+  String get movementsRelatedMissing =>
+      'The account, category or goal no longer exists.';
 
   @override
   String get movementsInvalidData => 'Check the movement data and try again.';
@@ -631,4 +665,104 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get categoriesLoadError =>
       'We couldn\'t load your categories. Check your connection.';
+
+  @override
+  String get goalsSectionTitle => 'Savings goals';
+
+  @override
+  String get goalsEmptyTitle => 'You don\'t have any goals yet';
+
+  @override
+  String get goalsEmptyMessage =>
+      'Create a goal and set money aside for what you want to achieve.';
+
+  @override
+  String get goalsCreate => 'Create goal';
+
+  @override
+  String get goalsLoadError =>
+      'We couldn\'t load your goals. Check your connection.';
+
+  @override
+  String get goalsSaveError =>
+      'We couldn\'t save the goal. Check your connection.';
+
+  @override
+  String get goalsPermissionError =>
+      'Your account doesn\'t have permission to save goals.';
+
+  @override
+  String get goalsInvalidData => 'Check the goal data and try again.';
+
+  @override
+  String get goalsSaveUnknown => 'We couldn\'t save the goal. Try again.';
+
+  @override
+  String get goalNewTitle => 'New goal';
+
+  @override
+  String get goalNameLabel => 'Goal name';
+
+  @override
+  String get goalNameHint => 'E.g. Vacation, emergency fund';
+
+  @override
+  String get goalNameRequired => 'Enter a name for the goal.';
+
+  @override
+  String get goalNameTooLong => 'Use 60 characters or fewer.';
+
+  @override
+  String get goalTargetLabel => 'Target amount';
+
+  @override
+  String get goalTargetRequired => 'Enter the target amount.';
+
+  @override
+  String get goalTargetInvalid => 'Enter a valid amount.';
+
+  @override
+  String get goalTargetPositive => 'The amount must be greater than zero.';
+
+  @override
+  String get goalTargetTooLarge => 'That amount is too large.';
+
+  @override
+  String get goalDateOptional => 'Target date (optional)';
+
+  @override
+  String get goalNoDate => 'No date';
+
+  @override
+  String get goalClearDate => 'Remove date';
+
+  @override
+  String get goalDatePickerHelp => 'Target date';
+
+  @override
+  String get goalDatePast => 'Choose a date from today onward.';
+
+  @override
+  String get goalSave => 'Save goal';
+
+  @override
+  String get goalSaved => 'Goal created.';
+
+  @override
+  String goalSavedOf(String saved, String target) {
+    return 'Saved: $saved of $target';
+  }
+
+  @override
+  String goalRemaining(String amount) {
+    return '$amount to go';
+  }
+
+  @override
+  String goalTargetFor(String date) {
+    return 'For $date';
+  }
+
+  @override
+  String get goalCompleted => 'Goal reached';
 }

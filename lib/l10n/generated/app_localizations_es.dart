@@ -268,6 +268,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get homeTotalsError => 'No pudimos cargar los totales del mes.';
 
   @override
+  String get homeBalanceSavingsError =>
+      'No pudimos sumar tus ahorros al balance.';
+
+  @override
   String get homeMyAccounts => 'Mis cuentas';
 
   @override
@@ -291,7 +295,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get homeNoMovementsMessage =>
-      'Cuando registres un gasto o un ingreso, aparecerá aquí.';
+      'Cuando registres un gasto, un ingreso o un ahorro, aparecerá aquí.';
 
   @override
   String get homeMonthSelector => 'El selector de mes';
@@ -309,7 +313,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get movementsEmptyMessage =>
-      'Registra tu primer gasto o ingreso para empezar a ver cómo se mueve tu dinero.';
+      'Registra tu primer gasto, ingreso o ahorro para empezar a ver cómo se mueve tu dinero.';
 
   @override
   String get movementsRegisterFirst => 'Registrar el primero';
@@ -325,6 +329,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get movementIncome => 'Ingreso';
+
+  @override
+  String get movementSavings => 'Ahorro';
 
   @override
   String get amountLabel => 'Monto';
@@ -361,6 +368,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get noCategory => 'Sin categoría';
 
   @override
+  String get goalQuestion => '¿A qué meta ahorras?';
+
+  @override
+  String get goalRequired => 'Elige la meta a la que vas a ahorrar.';
+
+  @override
+  String get savingsNoGoalsTitle => 'Primero crea una meta';
+
+  @override
+  String get savingsNoGoalsMessage =>
+      'Necesitas una meta para separar dinero y ver tu progreso.';
+
+  @override
+  String get savingsHint =>
+      'El ahorro se descuenta de la cuenta y suma a tu meta.';
+
+  @override
   String get dateLabel => 'Fecha';
 
   @override
@@ -379,10 +403,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get saveIncome => 'Guardar ingreso';
 
   @override
+  String get saveSaving => 'Guardar ahorro';
+
+  @override
   String get expenseSaved => 'Gasto registrado.';
 
   @override
   String get incomeSaved => 'Ingreso registrado.';
+
+  @override
+  String get savingSaved => 'Ahorro registrado.';
 
   @override
   String get accountExpenseRequired =>
@@ -390,6 +420,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get accountIncomeRequired => 'Elige la cuenta donde entra el dinero.';
+
+  @override
+  String get accountSavingsRequired =>
+      'Elige la cuenta de donde sale el ahorro.';
 
   @override
   String get initialBalanceTitle => '¿Con cuánto empiezas?';
@@ -527,11 +561,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get placeholderTitle => 'Estamos construyendo esta sección';
 
   @override
-  String get accountsTitle => 'Cuentas';
+  String get accountsTitle => 'Cuentas y metas';
 
   @override
-  String get accountsPlaceholder =>
-      'Administra tus cuentas, saldos y metas de ahorro en un solo lugar.';
+  String get accountsSubtitle =>
+      'Revisa tus saldos y avanza en tus metas de ahorro.';
 
   @override
   String get categoriesTitle => 'Categorías';
@@ -620,8 +654,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tu cuenta no tiene permisos para guardar movimientos.';
 
   @override
-  String get movementsAccountOrCategoryMissing =>
-      'La cuenta o la categoría ya no existe.';
+  String get movementsRelatedMissing =>
+      'La cuenta, la categoría o la meta ya no existe.';
 
   @override
   String get movementsInvalidData =>
@@ -634,4 +668,106 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get categoriesLoadError =>
       'No pudimos cargar tus categorías. Revisa tu conexión.';
+
+  @override
+  String get goalsSectionTitle => 'Metas de ahorro';
+
+  @override
+  String get goalsEmptyTitle => 'Aún no tienes metas';
+
+  @override
+  String get goalsEmptyMessage =>
+      'Crea una meta y separa dinero para lo que quieres lograr.';
+
+  @override
+  String get goalsCreate => 'Crear meta';
+
+  @override
+  String get goalsLoadError =>
+      'No pudimos cargar tus metas. Revisa tu conexión.';
+
+  @override
+  String get goalsSaveError =>
+      'No pudimos guardar la meta. Revisa tu conexión.';
+
+  @override
+  String get goalsPermissionError =>
+      'Tu cuenta no tiene permisos para guardar metas.';
+
+  @override
+  String get goalsInvalidData =>
+      'Revisa los datos de la meta e intenta de nuevo.';
+
+  @override
+  String get goalsSaveUnknown =>
+      'No pudimos guardar la meta. Intenta de nuevo.';
+
+  @override
+  String get goalNewTitle => 'Nueva meta';
+
+  @override
+  String get goalNameLabel => 'Nombre de la meta';
+
+  @override
+  String get goalNameHint => 'Ej. Vacaciones, fondo de emergencia';
+
+  @override
+  String get goalNameRequired => 'Escribe un nombre para la meta.';
+
+  @override
+  String get goalNameTooLong => 'Usa 60 caracteres o menos.';
+
+  @override
+  String get goalTargetLabel => 'Monto objetivo';
+
+  @override
+  String get goalTargetRequired => 'Escribe el monto objetivo.';
+
+  @override
+  String get goalTargetInvalid => 'Escribe un monto válido.';
+
+  @override
+  String get goalTargetPositive => 'El monto debe ser mayor que cero.';
+
+  @override
+  String get goalTargetTooLarge => 'Ese monto es demasiado grande.';
+
+  @override
+  String get goalDateOptional => 'Fecha objetivo (opcional)';
+
+  @override
+  String get goalNoDate => 'Sin fecha';
+
+  @override
+  String get goalClearDate => 'Quitar fecha';
+
+  @override
+  String get goalDatePickerHelp => 'Fecha objetivo';
+
+  @override
+  String get goalDatePast => 'Elige una fecha de hoy en adelante.';
+
+  @override
+  String get goalSave => 'Guardar meta';
+
+  @override
+  String get goalSaved => 'Meta creada.';
+
+  @override
+  String goalSavedOf(String saved, String target) {
+    return 'Ahorrado: $saved de $target';
+  }
+
+  @override
+  String goalRemaining(String amount) {
+    return 'Faltan $amount';
+  }
+
+  @override
+  String goalTargetFor(String date) {
+    return 'Para $date';
+  }
+
+  @override
+  String get goalCompleted => 'Meta lograda';
 }

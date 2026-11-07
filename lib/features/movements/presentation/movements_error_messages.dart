@@ -13,8 +13,7 @@ extension MovementsErrorMessage on MovementsError {
       MovementsError.save => l10n.movementsSaveError,
       MovementsError.totals => l10n.movementsTotalsError,
       MovementsError.permission => l10n.movementsPermissionError,
-      MovementsError.accountOrCategoryMissing =>
-        l10n.movementsAccountOrCategoryMissing,
+      MovementsError.relatedMissing => l10n.movementsRelatedMissing,
       MovementsError.invalidData => l10n.movementsInvalidData,
       MovementsError.saveUnknown => l10n.movementsSaveUnknown,
       MovementsError.sessionExpired => l10n.sessionExpired,

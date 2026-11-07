@@ -13,6 +13,8 @@ import 'package:mibolsillo/features/accounts/data/account.dart';
 import 'package:mibolsillo/features/auth/application/auth_providers.dart';
 import 'package:mibolsillo/features/categories/application/categories_providers.dart';
 import 'package:mibolsillo/features/categories/data/category.dart';
+import 'package:mibolsillo/features/goals/application/goals_providers.dart';
+import 'package:mibolsillo/features/goals/data/savings_goal.dart';
 import 'package:mibolsillo/features/movements/presentation/new_movement_screen.dart';
 import 'package:mibolsillo/l10n/generated/app_localizations.dart';
 
@@ -44,16 +46,28 @@ const _categories = [
   ),
 ];
 
+/// Una meta de ahorro para el selector.
+const _goals = [
+  SavingsGoal(
+    id: 'meta-vacaciones',
+    name: 'Vacaciones',
+    targetAmount: 5000,
+    saved: 500,
+  ),
+];
+
 /// Construye la pantalla con datos falsos y la nube desactivada.
 Widget _buildScreen({
   List<AccountSummary> accounts = _accounts,
   List<Category> categories = _categories,
+  List<SavingsGoal> goals = _goals,
 }) {
   return ProviderScope(
     overrides: [
       supabaseClientProvider.overrideWithValue(null),
       accountsProvider.overrideWith((ref) async => accounts),
       categoriesProvider.overrideWith((ref) async => categories),
+      goalsProvider.overrideWith((ref) async => goals),
     ],
     child: MaterialApp(
       theme: buildAppTheme(Brightness.light),
@@ -155,5 +169,69 @@ void main() {
 
     expect(find.text('Primero configura tu saldo inicial'), findsOneWidget);
     expect(find.text('Configurar saldo inicial'), findsOneWidget);
+  });
+
+  testWidgets('ahorro pide meta y oculta las categorías', (tester) async {
+    await tester.pumpWidget(_buildScreen());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Ahorro'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Guardar ahorro'), findsOneWidget);
+    expect(find.text('¿A qué meta ahorras?'), findsOneWidget);
+    expect(find.text('Vacaciones'), findsOneWidget);
+    expect(find.text('Comida'), findsNothing);
+    expect(find.text('Sin categoría'), findsNothing);
+  });
+
+  testWidgets('exige una meta antes de guardar un ahorro', (tester) async {
+    await tester.pumpWidget(_buildScreen());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Ahorro'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('movement-amount')),
+      '100',
+    );
+    await tester.tap(find.text('Efectivo · RD\$ 1,500.00'));
+    await tester.pumpAndSettle();
+    await _tapSave(tester, 'Guardar ahorro');
+
+    expect(find.text('Elige la meta a la que vas a ahorrar.'), findsOneWidget);
+  });
+
+  testWidgets('sin metas invita a crear una', (tester) async {
+    await tester.pumpWidget(_buildScreen(goals: const []));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Ahorro'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Primero crea una meta'), findsOneWidget);
+    expect(find.text('Crear meta'), findsOneWidget);
+  });
+
+  testWidgets('un ahorro completo llega al repositorio', (tester) async {
+    await tester.pumpWidget(_buildScreen());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Ahorro'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('movement-amount')),
+      '100',
+    );
+    await tester.tap(find.text('Efectivo · RD\$ 1,500.00'));
+    await tester.tap(find.text('Vacaciones'));
+    await tester.pumpAndSettle();
+    await _tapSave(tester, 'Guardar ahorro');
+
+    // Con la nube desactivada, el flujo válido llega hasta el repositorio.
+    expect(
+      find.text('La nube no está configurada en esta versión.'),
+      findsOneWidget,
+    );
   });
 }

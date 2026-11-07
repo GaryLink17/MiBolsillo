@@ -6,11 +6,12 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../data/movement.dart';
 
 extension MovementTypeLabel on MovementType {
-  /// Nombre singular del tipo de movimiento (Gasto / Ingreso).
+  /// Nombre singular del tipo de movimiento (Gasto / Ingreso / Ahorro).
   String label(AppLocalizations l10n) {
     return switch (this) {
       MovementType.gasto => l10n.movementExpense,
       MovementType.ingreso => l10n.movementIncome,
+      MovementType.ahorro => l10n.movementSavings,
     };
   }
 
@@ -19,6 +20,7 @@ extension MovementTypeLabel on MovementType {
     return switch (this) {
       MovementType.gasto => l10n.saveExpense,
       MovementType.ingreso => l10n.saveIncome,
+      MovementType.ahorro => l10n.saveSaving,
     };
   }
 
@@ -27,6 +29,7 @@ extension MovementTypeLabel on MovementType {
     return switch (this) {
       MovementType.gasto => l10n.expenseSaved,
       MovementType.ingreso => l10n.incomeSaved,
+      MovementType.ahorro => l10n.savingSaved,
     };
   }
 }

@@ -96,6 +96,7 @@
   "homeIncome": "Income",
   "homeExpenses": "Expenses",
   "homeTotalsError": "We couldn't load this month's totals.",
+  "homeBalanceSavingsError": "We couldn't add your savings to the balance.",
   "homeMyAccounts": "My accounts",
   "homeNoAccountsTitle": "You don't have any accounts yet",
   "homeNoAccountsMessage": "Set your initial balance to see how much money you have in each account today.",
@@ -103,7 +104,7 @@
   "homeRecentMovements": "Recent movements",
   "homeSeeAll": "See all",
   "homeNoMovementsTitle": "No movements yet",
-  "homeNoMovementsMessage": "When you record an expense or income, it will appear here.",
+  "homeNoMovementsMessage": "When you record an expense, income or saving, it will appear here.",
   "homeMonthSelector": "The month selector",
   "homeComingSoon": "{feature} is coming in the next step.",
   "@homeComingSoon": {
@@ -115,12 +116,13 @@
   },
   "movementsTitle": "Movements",
   "movementsEmptyTitle": "No movements yet",
-  "movementsEmptyMessage": "Record your first expense or income to start seeing how your money moves.",
+  "movementsEmptyMessage": "Record your first expense, income or saving to start seeing how your money moves.",
   "movementsRegisterFirst": "Record the first one",
   "today": "Today",
   "yesterday": "Yesterday",
   "movementExpense": "Expense",
   "movementIncome": "Income",
+  "movementSavings": "Saving",
   "amountLabel": "Amount",
   "amountHint": "0.00",
   "amountRequired": "Enter the amount.",
@@ -132,16 +134,24 @@
   "needAccountMessage": "You need at least one account to record movements.",
   "categoryOptional": "Category (optional)",
   "noCategory": "No category",
+  "goalQuestion": "Which goal are you saving toward?",
+  "goalRequired": "Choose the goal you're saving toward.",
+  "savingsNoGoalsTitle": "First create a goal",
+  "savingsNoGoalsMessage": "You need a goal to set money aside and track your progress.",
+  "savingsHint": "The saving is deducted from the account and added to your goal.",
   "dateLabel": "Date",
   "datePickerHelp": "Movement date",
   "noteLabel": "Note (optional)",
   "noteHint": "E.g. lunch with the team",
   "saveExpense": "Save expense",
   "saveIncome": "Save income",
+  "saveSaving": "Save saving",
   "expenseSaved": "Expense recorded.",
   "incomeSaved": "Income recorded.",
+  "savingSaved": "Saving recorded.",
   "accountExpenseRequired": "Choose the account the money comes from.",
   "accountIncomeRequired": "Choose the account the money goes into.",
+  "accountSavingsRequired": "Choose the account the saving comes from.",
   "initialBalanceTitle": "How much are you starting with?",
   "initialBalanceSubtitle": "Enter what you have today in each account. If you don't use one, turn it off.",
   "initialBalanceTotal": "Your total balance",
@@ -186,8 +196,8 @@
   "settingsVersion": "Mi Bolsillo · version 1.0.0",
   "aboutContent": "Version 1.0.0\n\nYour finances, clear and organized. Made to support you through every expense, income and saving.",
   "placeholderTitle": "We're building this section",
-  "accountsTitle": "Accounts",
-  "accountsPlaceholder": "Manage your accounts, balances and savings goals in one place.",
+  "accountsTitle": "Accounts and goals",
+  "accountsSubtitle": "Check your balances and move forward with your savings goals.",
   "categoriesTitle": "Categories",
   "categoriesPlaceholder": "Discover where your money goes with clear charts and comparisons by week, month or year.",
   "navHome": "Home",
@@ -214,8 +224,62 @@
   "movementsSaveError": "We couldn't save the movement. Check your connection.",
   "movementsTotalsError": "We couldn't load this month's totals. Check your connection.",
   "movementsPermissionError": "Your account doesn't have permission to save movements.",
-  "movementsAccountOrCategoryMissing": "The account or category no longer exists.",
+  "movementsRelatedMissing": "The account, category or goal no longer exists.",
   "movementsInvalidData": "Check the movement data and try again.",
   "movementsSaveUnknown": "We couldn't save the movement. Try again.",
-  "categoriesLoadError": "We couldn't load your categories. Check your connection."
+  "categoriesLoadError": "We couldn't load your categories. Check your connection.",
+  "goalsSectionTitle": "Savings goals",
+  "goalsEmptyTitle": "You don't have any goals yet",
+  "goalsEmptyMessage": "Create a goal and set money aside for what you want to achieve.",
+  "goalsCreate": "Create goal",
+  "goalsLoadError": "We couldn't load your goals. Check your connection.",
+  "goalsSaveError": "We couldn't save the goal. Check your connection.",
+  "goalsPermissionError": "Your account doesn't have permission to save goals.",
+  "goalsInvalidData": "Check the goal data and try again.",
+  "goalsSaveUnknown": "We couldn't save the goal. Try again.",
+  "goalNewTitle": "New goal",
+  "goalNameLabel": "Goal name",
+  "goalNameHint": "E.g. Vacation, emergency fund",
+  "goalNameRequired": "Enter a name for the goal.",
+  "goalNameTooLong": "Use 60 characters or fewer.",
+  "goalTargetLabel": "Target amount",
+  "goalTargetRequired": "Enter the target amount.",
+  "goalTargetInvalid": "Enter a valid amount.",
+  "goalTargetPositive": "The amount must be greater than zero.",
+  "goalTargetTooLarge": "That amount is too large.",
+  "goalDateOptional": "Target date (optional)",
+  "goalNoDate": "No date",
+  "goalClearDate": "Remove date",
+  "goalDatePickerHelp": "Target date",
+  "goalDatePast": "Choose a date from today onward.",
+  "goalSave": "Save goal",
+  "goalSaved": "Goal created.",
+  "goalSavedOf": "Saved: {saved} of {target}",
+  "@goalSavedOf": {
+    "placeholders": {
+      "saved": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "goalRemaining": "{amount} to go",
+  "@goalRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "goalTargetFor": "For {date}",
+  "@goalTargetFor": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "goalCompleted": "Goal reached"
 }

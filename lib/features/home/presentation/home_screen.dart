@@ -24,7 +24,10 @@ import '../../../shared/widgets/money_text.dart';
 import '../../accounts/application/accounts_providers.dart';
 import '../../accounts/data/account.dart';
 import '../../accounts/data/accounts_repository.dart';
+import '../../accounts/presentation/account_row.dart';
 import '../../accounts/presentation/accounts_error_messages.dart';
+import '../../goals/application/goals_providers.dart';
+import '../../goals/data/savings_goal.dart';
 import '../../movements/application/movements_providers.dart';
 import '../../movements/data/movement.dart';
 import '../../movements/data/movements_repository.dart';
@@ -47,10 +50,18 @@ class HomeScreen extends ConsumerWidget {
     // Cuentas y balance total. Mientras carga se usa una lista vacía.
     final accountsAsync = ref.watch(accountsProvider);
     final accounts = accountsAsync.value ?? const <AccountSummary>[];
-    final total = accounts.fold<double>(
+    final accountsTotal = accounts.fold<double>(
       0,
       (sum, account) => sum + account.balance,
     );
+
+    // Los ahorros salen de la cuenta pero siguen siendo dinero del usuario.
+    // Se suman al balance para que el total no baje al apartar dinero en una
+    // meta.
+    final goalsAsync = ref.watch(goalsProvider);
+    final savingsTotal = (goalsAsync.value ?? const <SavingsGoal>[])
+        .fold<double>(0, (sum, goal) => sum + goal.saved);
+    final total = accountsTotal + savingsTotal;
 
     // Movimientos recientes: solo los primeros cinco.
     final movementsAsync = ref.watch(movementsProvider);
@@ -98,6 +109,15 @@ class HomeScreen extends ConsumerWidget {
               style: theme.textTheme.displayLarge?.copyWith(fontSize: 44),
               showDecimals: true,
             ),
+            // Si las metas fallan, el balance queda incompleto: se avisa sin
+            // ocultar el resto de Inicio.
+            if (goalsAsync.hasError) ...[
+              const SizedBox(height: AppSpacing.xs),
+              _InlineRetry(
+                message: l10n.homeBalanceSavingsError,
+                onRetry: () => ref.invalidate(goalsProvider),
+              ),
+            ],
             const SizedBox(height: AppSpacing.lg),
 
             // Tarjetas de ingresos y gastos del mes.
@@ -156,7 +176,7 @@ class HomeScreen extends ConsumerWidget {
             else
               for (var i = 0; i < accounts.length; i++) ...[
                 if (i > 0) const SizedBox(height: AppSpacing.xs),
-                _AccountRow(account: accounts[i]),
+                AccountRow(account: accounts[i]),
               ],
             const SizedBox(height: AppSpacing.xxl),
 
@@ -215,13 +235,14 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  /// Recarga las tres consultas del inicio en paralelo.
+  /// Recarga las consultas del inicio en paralelo.
   ///
   /// Se esperan todas para que el indicador de refresco desaparezca solo
   /// cuando los datos estén listos.
   Future<void> _refresh(WidgetRef ref) async {
     await Future.wait([
       ref.refresh(accountsProvider.future),
+      ref.refresh(goalsProvider.future),
       ref.refresh(movementsProvider.future),
       ref.refresh(monthlyTotalsProvider.future),
     ]);
@@ -234,50 +255,6 @@ class HomeScreen extends ConsumerWidget {
       ..showSnackBar(
         SnackBar(content: Text(context.l10n.homeComingSoon(feature))),
       );
-  }
-}
-
-/// Fila de una cuenta: icono, nombre y saldo.
-class _AccountRow extends StatelessWidget {
-  const _AccountRow({required this.account});
-
-  final AccountSummary account;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return AppCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      child: Row(
-        children: [
-          CircleIcon(
-            icon: account.kind.icon,
-            size: 42,
-            iconSize: 20,
-            background: theme.colorScheme.primaryContainer,
-            foreground: theme.colorScheme.onPrimaryContainer,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              account.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleMedium,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          MoneyText(
-            account.balance,
-            style: theme.textTheme.titleMedium?.copyWith(fontSize: 17),
-            showDecimals: true,
-          ),
-        ],
-      ),
-    );
   }
 }
 

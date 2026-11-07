@@ -1,15 +1,14 @@
 // Archivo: lib/features/movements/presentation/new_movement_screen.dart
 //
-// Formulario para registrar un gasto o un ingreso.
+// Formulario para registrar un gasto, un ingreso o un ahorro.
 //
 // Flujo:
-// 1. El usuario elige el tipo (Gasto/Ingreso).
+// 1. El usuario elige el tipo (Gasto/Ingreso/Ahorro).
 // 2. Escribe el monto, elige cuenta y, opcionalmente, categoría y nota.
+//    Si es ahorro, en lugar de categoría elige una meta.
 // 3. Puede cambiar la fecha (no futura).
-// 4. Al guardar se inserta en Supabase y se invalidan cuentas, movimientos y
-//    totales para que Inicio y la lista se actualicen.
-//
-// El ahorro no aparece aquí: necesita una meta, que llega en la Parte 3.
+// 4. Al guardar se inserta en Supabase y se invalidan cuentas, movimientos,
+//    totales y metas para que Inicio y la lista se actualicen.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -33,15 +32,19 @@ import '../../categories/data/categories_repository.dart';
 import '../../categories/data/category.dart';
 import '../../categories/presentation/categories_error_messages.dart';
 import '../../categories/presentation/category_labels.dart';
+import '../../goals/application/goals_providers.dart';
+import '../../goals/data/goals_repository.dart';
+import '../../goals/data/savings_goal.dart';
+import '../../goals/presentation/goals_error_messages.dart';
 import '../application/movements_providers.dart';
 import '../data/movement.dart';
 import '../data/movements_repository.dart';
 import 'movement_labels.dart';
 import 'movements_error_messages.dart';
 
-/// Registro de un gasto o un ingreso.
+/// Registro de un gasto, un ingreso o un ahorro.
 ///
-/// El ahorro no aparece aquí: necesita una meta, que llega con M3.2.
+/// El ahorro exige una meta; el gasto y el ingreso usan categorías.
 class NewMovementScreen extends ConsumerStatefulWidget {
   const NewMovementScreen({super.key});
 
@@ -57,6 +60,7 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
   MovementType _type = MovementType.gasto;
   String? _accountId;
   String? _categoryId;
+  String? _goalId;
   DateTime _date = DateUtils.dateOnly(DateTime.now());
   bool _saving = false;
   String? _error;
@@ -68,13 +72,14 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
     super.dispose();
   }
 
-  /// Cambia entre gasto e ingreso. Se limpia la categoría porque las
-  /// categorías de gasto no aplican a un ingreso (y viceversa).
+  /// Cambia entre gasto, ingreso y ahorro. Se limpian la categoría y la meta
+  /// porque no aplican al nuevo tipo.
   void _changeType(MovementType type) {
     if (type == _type) return;
     setState(() {
       _type = type;
       _categoryId = null;
+      _goalId = null;
       _error = null;
     });
   }
@@ -105,11 +110,19 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
     // La cuenta no es un campo de `Form`, así que se valida aparte con un
     // mensaje distinto según el tipo.
     if (_accountId == null) {
-      setState(
-        () => _error = _type == MovementType.gasto
-            ? l10n.accountExpenseRequired
-            : l10n.accountIncomeRequired,
-      );
+      setState(() {
+        _error = switch (_type) {
+          MovementType.gasto => l10n.accountExpenseRequired,
+          MovementType.ingreso => l10n.accountIncomeRequired,
+          MovementType.ahorro => l10n.accountSavingsRequired,
+        };
+      });
+      return;
+    }
+
+    // El ahorro necesita una meta; el resto de tipos no.
+    if (_type == MovementType.ahorro && _goalId == null) {
+      setState(() => _error = l10n.goalRequired);
       return;
     }
 
@@ -135,14 +148,17 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
           amount: amount,
           occurredOn: _date,
           accountId: _accountId!,
-          categoryId: _categoryId,
+          categoryId: _type == MovementType.ahorro ? null : _categoryId,
+          goalId: _type == MovementType.ahorro ? _goalId : null,
           note: _note.text,
         ),
       );
-      // Refresca todo lo que depende de este movimiento.
+      // Refresca todo lo que depende de este movimiento. Las metas cambian
+      // cuando se registra un ahorro.
       ref.invalidate(accountsProvider);
       ref.invalidate(movementsProvider);
       ref.invalidate(monthlyTotalsProvider);
+      ref.invalidate(goalsProvider);
       if (!mounted) return;
       context.pop();
       messenger
@@ -164,12 +180,18 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
 
     final accountsAsync = ref.watch(accountsProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
+    final goalsAsync = ref.watch(goalsProvider);
     final accounts = accountsAsync.value ?? const <AccountSummary>[];
+    final goals = goalsAsync.value ?? const <SavingsGoal>[];
 
-    // Solo se muestran las categorías del tipo elegido.
-    final categories = (categoriesAsync.value ?? const <Category>[])
-        .where((category) => category.kind == _type.categoryKind)
-        .toList(growable: false);
+    // Solo se muestran las categorías del tipo elegido. El ahorro no usa
+    // categorías, sino una meta.
+    final categoryKind = _type.categoryKind;
+    final categories = categoryKind == null
+        ? const <Category>[]
+        : (categoriesAsync.value ?? const <Category>[])
+              .where((category) => category.kind == categoryKind)
+              .toList(growable: false);
 
     return Scaffold(
       body: AppPage(
@@ -199,7 +221,7 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                 ),
                 const SizedBox(height: AppSpacing.lg),
 
-                // Selector Gasto / Ingreso.
+                // Selector Gasto / Ingreso / Ahorro.
                 SegmentedSelector<MovementType>(
                   options: [
                     SegmentedOption(
@@ -209,6 +231,10 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                     SegmentedOption(
                       value: MovementType.ingreso,
                       label: MovementType.ingreso.label(l10n),
+                    ),
+                    SegmentedOption(
+                      value: MovementType.ahorro,
+                      label: MovementType.ahorro.label(l10n),
                     ),
                   ],
                   value: _type,
@@ -256,9 +282,8 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                 else if (accountsAsync.hasError && accounts.isEmpty)
                   _InlineError(
                     message: accountsAsync.error is AccountsFailure
-                        ? (accountsAsync.error as AccountsFailure).error.message(
-                            l10n,
-                          )
+                        ? (accountsAsync.error as AccountsFailure).error
+                              .message(l10n)
                         : l10n.accountsLoadError,
                     onRetry: () => ref.invalidate(accountsProvider),
                   )
@@ -316,45 +341,122 @@ class _NewMovementScreenState extends ConsumerState<NewMovementScreen> {
                   ),
                 const SizedBox(height: AppSpacing.lg),
 
-                // Categoría opcional. El chip "Sin categoría" deja el campo en
-                // null.
-                _SectionLabel(l10n.categoryOptional),
-                const SizedBox(height: AppSpacing.xs),
-                if (categoriesAsync.isLoading && categories.isEmpty)
-                  const _InlineLoader()
-                else if (categoriesAsync.hasError && categories.isEmpty)
-                  _InlineError(
-                    message: categoriesAsync.error is CategoriesFailure
-                        ? (categoriesAsync.error as CategoriesFailure).error
-                              .message(l10n)
-                        : l10n.categoriesLoadError,
-                    onRetry: () => ref.invalidate(categoriesProvider),
-                  )
-                else
-                  Wrap(
-                    spacing: AppSpacing.xs,
-                    runSpacing: AppSpacing.xs,
-                    children: [
-                      _SelectChip(
-                        label: l10n.noCategory,
-                        selected: _categoryId == null,
-                        onSelected: () => setState(() => _categoryId = null),
-                      ),
-                      for (final category in categories)
-                        _SelectChip(
-                          label: category.displayName(l10n),
-                          selected: _categoryId == category.id,
-                          avatar: Icon(
-                            category.icon,
-                            size: 16,
-                            color: palette.tone(category.tone).foreground,
+                // Para gasto/ingreso se elige una categoría; para ahorro se
+                // elige la meta que recibe el dinero.
+                if (_type == MovementType.ahorro) ...[
+                  _SectionLabel(l10n.goalQuestion),
+                  const SizedBox(height: AppSpacing.xs),
+                  if (goalsAsync.isLoading && goals.isEmpty)
+                    const _InlineLoader()
+                  else if (goalsAsync.hasError && goals.isEmpty)
+                    _InlineError(
+                      message: goalsAsync.error is GoalsFailure
+                          ? (goalsAsync.error as GoalsFailure).error.message(
+                              l10n,
+                            )
+                          : l10n.goalsLoadError,
+                      onRetry: () => ref.invalidate(goalsProvider),
+                    )
+                  else if (goals.isEmpty)
+                    // Sin metas no se puede ahorrar: se guía a crearlas.
+                    AppCard(
+                      child: Column(
+                        children: [
+                          Text(
+                            l10n.savingsNoGoalsTitle,
+                            style: theme.textTheme.titleSmall,
+                            textAlign: TextAlign.center,
                           ),
-                          onSelected: () {
-                            setState(() => _categoryId = category.id);
-                          },
+                          const SizedBox(height: AppSpacing.xxs),
+                          Text(
+                            l10n.savingsNoGoalsMessage,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: palette.muted,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          TextButton(
+                            onPressed: () => context.push('/nueva-meta'),
+                            child: Text(l10n.goalsCreate),
+                          ),
+                        ],
+                      ),
+                    )
+                  else ...[
+                    Wrap(
+                      spacing: AppSpacing.xs,
+                      runSpacing: AppSpacing.xs,
+                      children: [
+                        for (final goal in goals)
+                          _SelectChip(
+                            label: goal.name,
+                            selected: _goalId == goal.id,
+                            avatar: Icon(
+                              Icons.flag_outlined,
+                              size: 16,
+                              color: palette
+                                  .tone(CategoryTone.health)
+                                  .foreground,
+                            ),
+                            onSelected: () {
+                              setState(() {
+                                _goalId = goal.id;
+                                _error = null;
+                              });
+                            },
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      l10n.savingsHint,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: palette.muted,
+                      ),
+                    ),
+                  ],
+                ] else ...[
+                  // Categoría opcional. El chip "Sin categoría" deja el campo
+                  // en null.
+                  _SectionLabel(l10n.categoryOptional),
+                  const SizedBox(height: AppSpacing.xs),
+                  if (categoriesAsync.isLoading && categories.isEmpty)
+                    const _InlineLoader()
+                  else if (categoriesAsync.hasError && categories.isEmpty)
+                    _InlineError(
+                      message: categoriesAsync.error is CategoriesFailure
+                          ? (categoriesAsync.error as CategoriesFailure).error
+                                .message(l10n)
+                          : l10n.categoriesLoadError,
+                      onRetry: () => ref.invalidate(categoriesProvider),
+                    )
+                  else
+                    Wrap(
+                      spacing: AppSpacing.xs,
+                      runSpacing: AppSpacing.xs,
+                      children: [
+                        _SelectChip(
+                          label: l10n.noCategory,
+                          selected: _categoryId == null,
+                          onSelected: () => setState(() => _categoryId = null),
                         ),
-                    ],
-                  ),
+                        for (final category in categories)
+                          _SelectChip(
+                            label: category.displayName(l10n),
+                            selected: _categoryId == category.id,
+                            avatar: Icon(
+                              category.icon,
+                              size: 16,
+                              color: palette.tone(category.tone).foreground,
+                            ),
+                            onSelected: () {
+                              setState(() => _categoryId = category.id);
+                            },
+                          ),
+                      ],
+                    ),
+                ],
                 const SizedBox(height: AppSpacing.lg),
 
                 // Fecha: se muestra como tarjeta pulsable.

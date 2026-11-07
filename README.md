@@ -1,11 +1,10 @@
 # Mi Bolsillo
 
-App de finanzas personales para Android, con datos locales y sincronización en
-la nube (Supabase) a partir del siguiente hito.
+App de finanzas personales para Android, con datos en la nube (Supabase).
 
 ## Estado actual
 
-Hito **M2**: conexión con Supabase, acceso real y saldo inicial.
+Hito **M3**: movimientos y metas de ahorro.
 
 - Tema claro/oscuro con los colores del diseño de referencia.
 - Tipografía Inter incluida en la app (sin descargas en tiempo de ejecución).
@@ -15,13 +14,23 @@ Hito **M2**: conexión con Supabase, acceso real y saldo inicial.
   ninguna pantalla interna.
 - Saldo inicial por cuenta (Efectivo, Banco, Ahorros y Tarjeta) al terminar el
   registro; se puede omitir y configurar después desde Inicio.
-- Inicio muestra el balance total y las cuentas reales del usuario.
+- Inicio muestra el balance total, las cuentas, los totales del mes y los
+  últimos movimientos. El balance total suma los saldos de las cuentas más lo
+  ahorrado en las metas.
+- Movimientos admite gasto, ingreso y ahorro, con monto, fecha, cuenta,
+  categoría (opcional) o meta y nota. La lista se agrupa por día y muestra los
+  totales del mes.
+- Un ahorro se descuenta de la cuenta y se suma a la meta. Aparece en negativo
+  porque sale del saldo disponible, pero no cuenta como gasto ni reduce el
+  balance total.
+- Cuentas y metas muestra las cuentas reales con su saldo y las metas con su
+  progreso; las metas se crean desde `/nueva-meta`.
 - Navegación con 5 accesos: Inicio, Movimientos, Cuentas, Categorías y el botón
   central de nuevo movimiento.
 - Ajustes funcional para cambiar tema, repetir el tutorial y cerrar sesión.
 
-Los movimientos, las metas de ahorro y la sincronización offline llegan en los
-siguientes hitos.
+La búsqueda y los filtros de movimientos, la persistencia offline y el análisis
+por categorías llegan en los siguientes hitos.
 
 ## Decisiones cerradas
 
@@ -42,13 +51,18 @@ siguientes hitos.
 ```
 lib/
   app/            # arranque, router, tema, medidas de página
-  core/           # preferencias, formatos
+  core/           # configuración, preferencias, formatos y l10n
+  l10n/           # textos en español e inglés
   shared/widgets/ # componentes reutilizables
   features/
     onboarding/   # tutorial de bienvenida
-    shell/        # contenedor con la barra inferior
-    home/         # inicio y datos de muestra
-    movements/    # vista previa de nuevo movimiento
+    welcome/      # pantalla de bienvenida
+    auth/         # acceso y registro
+    accounts/     # cuentas y saldo inicial
+    goals/        # metas de ahorro
+    categories/   # categorías de gasto e ingreso
+    movements/    # gastos, ingresos y ahorros
+    home/         # inicio
     placeholder/  # pantallas en construcción
     settings/     # ajustes y apariencia
 ```
@@ -57,6 +71,7 @@ lib/
 
 ```bash
 flutter pub get
+flutter gen-l10n
 flutter analyze
 flutter test
 flutter run
@@ -75,13 +90,21 @@ flutter build apk --dart-define-from-file=env.json
 Si `env.json` no existe o está incompleto, la app arranca en modo local sin
 fallar. Nunca se usa la `service_role` desde la app.
 
+### Base de datos
+
+Las migraciones viven en `supabase/migrations`:
+
+- `0001_init.sql`: perfiles, cuentas, categorías, movimientos, metas, RLS y
+  vistas `account_balances` y `goal_balances`.
+- `0002_account_balances_initial_balance.sql`: incluye el saldo inicial en el
+  cálculo de las cuentas.
+
 ## Siguientes hitos
 
-1. **M2** Autenticación con Supabase y esquema inicial (perfiles, cuentas,
-   categorías, movimientos, metas).
-2. **M3** Movimientos: formulario completo, lista, búsqueda y filtros.
-3. **M4** Persistencia local con Drift y sincronización offline-first.
-4. **M5** Cuentas y metas de ahorro.
-5. **M6** Análisis por categorías.
-6. **M7** Seguridad local, exportación y recordatorios.
-7. **M8** Pruebas, pulido y release.
+1. **M3** Movimientos: formulario y lista listos; faltan búsqueda y filtros.
+2. **M4** Persistencia local con Drift y sincronización offline-first.
+3. **M5** Metas de ahorro: listado y registro de ahorros listos; faltan edición
+   y archivo de metas.
+4. **M6** Análisis por categorías.
+5. **M7** Seguridad local, exportación y recordatorios.
+6. **M8** Pruebas, pulido y release.
