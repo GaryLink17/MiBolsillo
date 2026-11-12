@@ -21,7 +21,7 @@ select
   a.initial_balance
     + coalesce(sum(
         case m.type
-          when 'ingreso' then m.amount
+          when 'ingreso' then m.amount 
           when 'gasto' then -m.amount
           when 'ahorro' then -m.amount
         end
