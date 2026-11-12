@@ -82,7 +82,7 @@ class MovementsRepository {
       final rows = await _client
           .from('movements')
           .select(
-            'id, type, amount, occurred_on, note, '
+            'id, type, amount, occurred_on, note, account_id, '
             'accounts(name), '
             'categories(id, name, kind, tone, icon), '
             'goals(name)',

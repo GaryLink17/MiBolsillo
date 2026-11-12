@@ -674,6 +674,66 @@ abstract class AppLocalizations {
   /// **'Ayer'**
   String get yesterday;
 
+  /// No description provided for @movementsSearch.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar movimientos'**
+  String get movementsSearch;
+
+  /// No description provided for @movementsFilters.
+  ///
+  /// In es, this message translates to:
+  /// **'Filtros'**
+  String get movementsFilters;
+
+  /// No description provided for @movementsFilterType.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo'**
+  String get movementsFilterType;
+
+  /// No description provided for @movementsFilterAccount.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuenta'**
+  String get movementsFilterAccount;
+
+  /// No description provided for @movementsFilterCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Categoría'**
+  String get movementsFilterCategory;
+
+  /// No description provided for @movementsFilterDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir rango de fechas'**
+  String get movementsFilterDate;
+
+  /// No description provided for @movementsFilterAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Todos'**
+  String get movementsFilterAll;
+
+  /// No description provided for @movementsClearFilters.
+  ///
+  /// In es, this message translates to:
+  /// **'Limpiar filtros'**
+  String get movementsClearFilters;
+
+  /// No description provided for @movementsNoResults.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin resultados'**
+  String get movementsNoResults;
+
+  /// No description provided for @movementsNoResultsMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Prueba otra búsqueda o cambia los filtros.'**
+  String get movementsNoResultsMessage;
+
   /// No description provided for @movementExpense.
   ///
   /// In es, this message translates to:

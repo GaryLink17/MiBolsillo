@@ -323,6 +323,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yesterday => 'Yesterday';
 
   @override
+  String get movementsSearch => 'Search movements';
+
+  @override
+  String get movementsFilters => 'Filters';
+
+  @override
+  String get movementsFilterType => 'Type';
+
+  @override
+  String get movementsFilterAccount => 'Account';
+
+  @override
+  String get movementsFilterCategory => 'Category';
+
+  @override
+  String get movementsFilterDate => 'Choose date range';
+
+  @override
+  String get movementsFilterAll => 'All';
+
+  @override
+  String get movementsClearFilters => 'Clear filters';
+
+  @override
+  String get movementsNoResults => 'No results';
+
+  @override
+  String get movementsNoResultsMessage =>
+      'Try another search or change the filters.';
+
+  @override
   String get movementExpense => 'Expense';
 
   @override

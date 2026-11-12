@@ -70,6 +70,7 @@ class MovementEntry {
     required this.type,
     required this.amount,
     required this.occurredOn,
+    this.accountId,
     this.accountName,
     this.note,
     this.category,
@@ -80,6 +81,7 @@ class MovementEntry {
   final MovementType type;
   final double amount;
   final DateTime occurredOn;
+  final String? accountId;
 
   /// Nombre de la cuenta asociada; `null` si la relación no vino en la fila.
   final String? accountName;
@@ -113,6 +115,7 @@ class MovementEntry {
       type: MovementType.fromDb(map['type'] as String),
       amount: (map['amount'] as num).toDouble(),
       occurredOn: _dateOnly(DateTime.parse(map['occurred_on'] as String)),
+      accountId: map['account_id'] as String?,
       accountName: account is Map<String, dynamic>
           ? account['name'] as String?
           : null,

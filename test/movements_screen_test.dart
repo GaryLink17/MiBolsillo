@@ -103,6 +103,220 @@ Widget _buildHome({
 }
 
 void main() {
+  testWidgets(
+    'los filtros tienen separación y muestran el contador al cerrar',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        _buildMovements(
+          movements: [
+            MovementEntry(
+              id: '1',
+              type: MovementType.gasto,
+              amount: 10,
+              occurredOn: DateTime.now(),
+              accountId: 'a',
+              accountName: 'Banco',
+              category: _comida,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Filtros'));
+      await tester.pumpAndSettle();
+      final type = find.byType(DropdownButtonFormField<MovementType>);
+      final fields = find.byType(DropdownButtonFormField<String>);
+      expect(
+        tester.getBottomLeft(type).dy,
+        lessThan(tester.getTopLeft(fields.first).dy),
+      );
+      expect(
+        tester.getBottomLeft(fields.first).dy,
+        lessThan(tester.getTopLeft(fields.last).dy),
+      );
+      tester.widget<DropdownButtonFormField<MovementType>>(type).onChanged!(
+        MovementType.gasto,
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Filtros'));
+      await tester.tap(find.text('Filtros'));
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(
+          of: find.byType(ExpansionTile),
+          matching: find.text('1'),
+        ),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('combina cuenta y categoría por sus identificadores', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final today = DateTime.now();
+    await tester.pumpWidget(
+      _buildMovements(
+        movements: [
+          MovementEntry(
+            id: '1',
+            type: MovementType.gasto,
+            amount: 10,
+            occurredOn: today,
+            accountId: 'a',
+            accountName: 'Banco',
+            category: _comida,
+          ),
+          MovementEntry(
+            id: '2',
+            type: MovementType.gasto,
+            amount: 20,
+            occurredOn: today,
+            accountId: 'b',
+            accountName: 'Banco',
+            category: _comida,
+          ),
+          MovementEntry(
+            id: '3',
+            type: MovementType.ingreso,
+            amount: 30,
+            occurredOn: today,
+            accountId: 'a',
+            accountName: 'Banco',
+            category: _salario,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Filtros'));
+    await tester.pumpAndSettle();
+    var dropdowns = tester
+        .widgetList<DropdownButtonFormField<String>>(
+          find.byType(DropdownButtonFormField<String>),
+        )
+        .toList();
+    dropdowns[0].onChanged!('a');
+    await tester.pumpAndSettle();
+    dropdowns = tester
+        .widgetList<DropdownButtonFormField<String>>(
+          find.byType(DropdownButtonFormField<String>),
+        )
+        .toList();
+    dropdowns[1].onChanged!('categoria-comida');
+    await tester.pumpAndSettle();
+    final rows = tester
+        .widgetList<MovementRow>(find.byType(MovementRow))
+        .toList();
+    expect(rows.map((row) => row.movement.id), ['1']);
+  });
+
+  testWidgets('busca nombres y notas y permite limpiar los resultados', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final today = DateTime.now();
+    await tester.pumpWidget(
+      _buildMovements(
+        movements: [
+          MovementEntry(
+            id: '1',
+            type: MovementType.ahorro,
+            amount: 10,
+            occurredOn: today,
+            accountId: 'a',
+            accountName: 'Banco',
+            goalName: 'Vacaciones',
+            note: 'Mensual',
+          ),
+          MovementEntry(
+            id: '2',
+            type: MovementType.gasto,
+            amount: 20,
+            occurredOn: today,
+            accountId: 'b',
+            accountName: 'Efectivo',
+            category: _comida,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    final search = find.byKey(const ValueKey('movements-search'));
+    for (final query in ['VACACIONES', 'mensual', 'banco']) {
+      await tester.enterText(search, query);
+      await tester.pumpAndSettle();
+      expect(find.byType(MovementRow), findsOneWidget);
+      expect(find.text('Vacaciones'), findsOneWidget);
+    }
+    await tester.enterText(search, 'comida');
+    await tester.pumpAndSettle();
+    expect(find.text('Comida'), findsOneWidget);
+    await tester.enterText(search, 'inexistente');
+    await tester.pumpAndSettle();
+    expect(find.text('Sin resultados'), findsOneWidget);
+    await tester.tap(find.text('Limpiar filtros'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MovementRow), findsNWidgets(2));
+  });
+
+  testWidgets('combina filtro de tipo con búsqueda', (tester) async {
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final today = DateTime.now();
+    await tester.pumpWidget(
+      _buildMovements(
+        movements: [
+          MovementEntry(
+            id: '1',
+            type: MovementType.ahorro,
+            amount: 10,
+            occurredOn: today,
+            accountId: 'a',
+            accountName: 'Banco',
+            goalName: 'Viaje',
+          ),
+          MovementEntry(
+            id: '2',
+            type: MovementType.gasto,
+            amount: 20,
+            occurredOn: today,
+            accountId: 'a',
+            accountName: 'Banco',
+            note: 'Taxi',
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('movements-search')),
+      'banco',
+    );
+    await tester.tap(find.text('Filtros'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownButtonFormField<MovementType>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ahorro').last);
+    await tester.pumpAndSettle();
+    expect(find.byType(MovementRow), findsOneWidget);
+    expect(find.text('Viaje'), findsOneWidget);
+  });
+
   testWidgets('sin movimientos invita a registrar el primero', (tester) async {
     await tester.pumpWidget(_buildMovements());
     await tester.pumpAndSettle();

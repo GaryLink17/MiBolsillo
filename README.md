@@ -20,6 +20,8 @@ Hito **M3**: movimientos y metas de ahorro.
 - Movimientos admite gasto, ingreso y ahorro, con monto, fecha, cuenta,
   categoría (opcional) o meta y nota. La lista se agrupa por día y muestra los
   totales del mes.
+- La lista permite buscar por nota, cuenta, categoría o meta y combinar filtros
+  de tipo, cuenta, categoría y rango de fechas.
 - Un ahorro se descuenta de la cuenta y se suma a la meta. Aparece en negativo
   porque sale del saldo disponible, pero no cuenta como gasto ni reduce el
   balance total.
@@ -29,8 +31,8 @@ Hito **M3**: movimientos y metas de ahorro.
   central de nuevo movimiento.
 - Ajustes funcional para cambiar tema, repetir el tutorial y cerrar sesión.
 
-La búsqueda y los filtros de movimientos, la persistencia offline y el análisis
-por categorías llegan en los siguientes hitos.
+La persistencia offline y el análisis por categorías llegan en los siguientes
+hitos.
 
 ## Decisiones cerradas
 
@@ -101,10 +103,9 @@ Las migraciones viven en `supabase/migrations`:
 
 ## Siguientes hitos
 
-1. **M3** Movimientos: formulario y lista listos; faltan búsqueda y filtros.
-2. **M4** Persistencia local con Drift y sincronización offline-first.
-3. **M5** Metas de ahorro: listado y registro de ahorros listos; faltan edición
+1. **M4** Persistencia local con Drift y sincronización offline-first.
+2. **M5** Metas de ahorro: listado y registro de ahorros listos; faltan edición
    y archivo de metas.
-4. **M6** Análisis por categorías.
-5. **M7** Seguridad local, exportación y recordatorios.
-6. **M8** Pruebas, pulido y release.
+3. **M6** Análisis por categorías.
+4. **M7** Seguridad local, exportación y recordatorios.
+5. **M8** Pruebas, pulido y release.
