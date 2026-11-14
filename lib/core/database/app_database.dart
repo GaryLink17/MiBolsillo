@@ -1,9 +1,11 @@
 // Archivo: lib/core/database/app_database.dart
 //
-// Punto de entrada de la base local. La conexión se recibe desde fuera para
-// poder probarla en memoria; aún no se abre un archivo en el dispositivo.
+// Punto de entrada de la base local. Permite inyectar una conexión para las
+// pruebas o preparar un archivo persistente en el directorio privado de la app.
 
 import 'package:drift/drift.dart';
+import 'package:drift_flutter/drift_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 
 part 'app_database.g.dart';
 
@@ -118,6 +120,18 @@ class CachedDatasetMetadata extends Table {
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
+
+  /// Prepara el archivo persistente; Drift lo abre al ejecutar una consulta.
+  /// La app todavía no crea esta instancia ni muestra datos locales.
+  AppDatabase.persistent()
+    : super(
+        driftDatabase(
+          name: 'mi_bolsillo',
+          native: const DriftNativeOptions(
+            databaseDirectory: getApplicationSupportDirectory,
+          ),
+        ),
+      );
 
   @override
   int get schemaVersion => 1;
